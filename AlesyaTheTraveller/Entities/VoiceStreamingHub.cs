@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace AlesyaTheTraveller.Entities
 {
-    public class ChatHub : Hub
+    public class VoiceStreamingHub : Hub
     {
-        public async Task BroadcastMessage(short[] message)
+        public async Task GetVoiceStream(string base64Array)
         {
-            //await Clients.All.SendAsync("broadcastmessage", message);
-            Console.WriteLine(message);
+            Console.WriteLine(Convert.FromBase64String(base64Array)); //8192
         }
     }
 }

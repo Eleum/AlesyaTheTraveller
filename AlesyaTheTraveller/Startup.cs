@@ -1,7 +1,6 @@
 using AlesyaTheTraveller.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
@@ -52,7 +51,7 @@ namespace AlesyaTheTraveller
 
             app.UseSignalR(routes =>
             {
-                routes.MapHub<ChatHub>("/chat");
+                routes.MapHub<VoiceStreamingHub>("/stream");
             });
 
             app.UseMvc(routes =>

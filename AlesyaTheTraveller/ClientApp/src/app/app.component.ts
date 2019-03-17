@@ -13,13 +13,20 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.signalRService.startConnection();
-    //this.signalRService.addBroadcastMessageListener();
+    //this.signalRService.startRecording();
+  }
+
+  startRecording() {
     this.signalRService.startRecording();
   }
 
-  public sendMessage = (message) => {
-    this.signalRService.broadcastMessage(message);
+  stopRecording() {
+    this.signalRService.stopRecording();
   }
+
+  //public sendMessage = (message) => {
+  //  this.signalRService.broadcastMessage(message);
+  //}
 
   title = 'app';
 }

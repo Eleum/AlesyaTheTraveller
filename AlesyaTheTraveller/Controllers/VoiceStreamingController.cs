@@ -7,11 +7,11 @@ namespace AlesyaTheTraveller.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ChatController : ControllerBase
+    public class VoiceStreamingController : ControllerBase
     {
-        private IHubContext<ChatHub> _hubContext;
+        private IHubContext<VoiceStreamingHub> _hubContext;
 
-        public ChatController(IHubContext<ChatHub> hubContext)
+        public VoiceStreamingController(IHubContext<VoiceStreamingHub> hubContext)
         {
             _hubContext = hubContext;
         }
