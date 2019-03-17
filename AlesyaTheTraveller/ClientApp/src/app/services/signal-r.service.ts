@@ -72,8 +72,6 @@ export class SignalRService {
         .withUrl("https://localhost:44389/stream")
         .build();
 
-    console.log(this.hubConnection);
-
     this.hubConnection
       .start()
       .then(() => console.log("Connection started"))
@@ -81,6 +79,11 @@ export class SignalRService {
   }
 
   startRecording() {
+    this.hubConnection.send("StartRecognition");
+    // подумать, как обрабатывать ошибки
+    //.then(() => console.log("Recognition started successfully"))
+    //.catch(err => console.log("server Recognition() error: " + err));
+
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
         this.audioCtx = new AudioContext();
@@ -106,9 +109,9 @@ export class SignalRService {
 
   stopRecording() {
     try {
-      let stream = this.stream;
-      stream.getAudioTracks().forEach(track => track.stop());
-      stream.getVideoTracks().forEach(track => track.stop());
+      //let stream = this.stream;
+      //stream.getAudioTracks().forEach(track => track.stop());
+      //stream.getVideoTracks().forEach(track => track.stop());
       this.audioCtx.close();
     }
     catch (error) {
