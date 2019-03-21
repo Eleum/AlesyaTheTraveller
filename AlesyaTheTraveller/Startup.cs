@@ -1,4 +1,5 @@
 using AlesyaTheTraveller.Entities;
+using AlesyaTheTraveller.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +21,9 @@ namespace AlesyaTheTraveller
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHostedService<ConsumeScopedServiceHostedService>();
+            services.AddScoped<IScopedProcessingService, ScopedProcessingService>();
+
             services.AddSignalR();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
@@ -50,7 +54,7 @@ namespace AlesyaTheTraveller
 
             app.UseSignalR(routes =>
             {
-                routes.MapHub<VoiceStreamingHub>("/stream");
+                routes.MapHub<VoiceStreamingHub>("/stream", options => options.ApplicationMaxBufferSize = 30 * 1024);
             });
 
             app.UseMvc(routes =>

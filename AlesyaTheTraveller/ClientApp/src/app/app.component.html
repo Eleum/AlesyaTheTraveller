@@ -5,8 +5,31 @@
       <input type="text" #message id="message" />
       <input type="button" id="sendBtn" value="Старт" (click)="startRecording()" />
       <input type="button" id="sendBtn" value="Стоп" (click)="stopRecording()" />
+      <input type="button" id="sendBtn" value="Тест" (click)="test()" />
     </div>
     <div id="chatroom"></div>
+
+    <div class="container">
+      <div class="row"> </div>
+      <div class="row">
+        <div class="col-6"> </div>
+        <div class="col-6">
+          <input type="button" id="streamButton" value="Start Streaming" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <hr />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-6"> </div>
+        <div class="col-6">
+          <ul id="messagesList"></ul>
+        </div>
+      </div>
+    </div>
+
     <router-outlet></router-outlet>
   </div>
 </body>

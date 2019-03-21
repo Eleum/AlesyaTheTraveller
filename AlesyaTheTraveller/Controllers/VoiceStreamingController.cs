@@ -1,6 +1,7 @@
 ﻿using AlesyaTheTraveller.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using System.Threading.Tasks;
 
 namespace AlesyaTheTraveller.Controllers
 {
@@ -14,11 +15,12 @@ namespace AlesyaTheTraveller.Controllers
             _hubContext = hubContext;
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> Get()
-        //{
-        //    return Ok();
-        //}
+        [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            //await _hubContext.Clients.All.SendAsync();
+            return Ok();
+        }
 
         //public async Task BroadcastMessage(string message)
         //{

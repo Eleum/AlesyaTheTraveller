@@ -11,9 +11,10 @@ export class AppComponent implements OnInit {
 
   constructor(public signalRService: SignalRService, private http: HttpClient) { }
 
+  
+
   ngOnInit() {
     this.signalRService.startConnection();
-    //this.signalRService.startRecording();
   }
 
   startRecording() {
@@ -22,6 +23,10 @@ export class AppComponent implements OnInit {
 
   stopRecording() {
     this.signalRService.stopRecording();
+  }
+
+  test() {
+    this.signalRService.test();
   }
 
   //public sendMessage = (message) => {
