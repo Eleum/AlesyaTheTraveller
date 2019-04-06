@@ -19,9 +19,7 @@ export class SignalRService {
     return btoa(String.fromCharCode.apply(null, new Uint8Array(buf.buffer)));
   }
 
-  public startConnection = () => {
-    console.log("try to start connection");
-
+  public startConnection() {
     this.hubConnection =
       new signalR.HubConnectionBuilder()
         .withUrl("https://localhost:44389/stream")
@@ -35,12 +33,10 @@ export class SignalRService {
     console.log("hub connection is: " + this.hubConnection);
   }
 
-  startRecording() {
-    this.hubConnection.send("StartRecognition");
-    //this.hubConnection.invoke("StartMethod");
-    // подумать, как обрабатывать ошибки
-    //.then(() => console.log("Recognition started successfully"))
-    //.catch(err => console.log("server Recognition() error: " + err));
+  startVoiceStream() {
+    this.hubConnection.send("StartRecognition")
+    .then(() => console.log("Recognition started successfully"))
+    .catch(err => console.log("server Recognition() error: " + err));
 
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
@@ -66,11 +62,10 @@ export class SignalRService {
       })
   }
 
-  stopRecording() {
+  stopVoiceStream() {
     try {
       let stream = this.stream;
       stream.getAudioTracks().forEach(track => track.stop());
-      //stream.getVideoTracks().forEach(track => track.stop());
       this.audioCtx.close();
     }
     catch (error) {
@@ -78,14 +73,9 @@ export class SignalRService {
     }
   }
 
-  //public broadcastMessage = (message) => {
-  //  this.hubConnection.invoke('broadcastmessage', message)
-  //    .catch(err => console.error(err));
-  //}
-
-  //public addBroadcastMessageListener = () => {
-  //  this.hubConnection.on('broadcastmessage', (data) => {
-  //    console.log("broadcasted message: " + data);
-  //  })
-  //}
+  public stopVoiceStreamListener = () => {
+    this.hubConnection.on('InvokeStopVoiceStream', () => {
+      this.stopVoiceStream();
+    });
+  }
 }

@@ -13,14 +13,15 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.signalRService.startConnection();
+    this.signalRService.stopVoiceStreamListener();
   }
 
   startRecording() {
-    this.signalRService.startRecording();
+    this.signalRService.startVoiceStream();
   }
 
   stopRecording() {
-    this.signalRService.stopRecording();
+    this.signalRService.stopVoiceStream();
   }
 
   title = 'app';

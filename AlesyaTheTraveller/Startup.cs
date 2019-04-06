@@ -1,4 +1,5 @@
 using AlesyaTheTraveller.Entities;
+using AlesyaTheTraveller.Extensions;
 using AlesyaTheTraveller.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -54,7 +55,7 @@ namespace AlesyaTheTraveller
 
             app.UseSignalR(routes =>
             {
-                routes.MapHub<VoiceStreamingHub>("/stream", options => options.ApplicationMaxBufferSize = 30 * 1024);
+                routes.MapHub<VoiceStreamingHub>("/stream");
             });
 
             app.UseMvc(routes =>
