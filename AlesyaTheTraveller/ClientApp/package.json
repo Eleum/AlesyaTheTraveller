@@ -34,6 +34,7 @@
     "popper.js": "^1.14.3",
     "recordrtc": "^5.5.4",
     "rxjs": "^6.0.0",
+    "yandex-speech": "0.0.14",
     "zone.js": "^0.8.26"
   },
   "devDependencies": {

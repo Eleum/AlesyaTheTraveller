@@ -3,11 +3,13 @@ using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.AspNetCore.SignalR;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Yandex.Cloud.Ai.Stt.V2;
+using YandexTranslateCSharpSdk;
 
 namespace AlesyaTheTraveller.Extensions
 {
@@ -30,7 +32,7 @@ namespace AlesyaTheTraveller.Extensions
         public static event EventHandler<VoiceStreamArgs> OnDataAvailable;
 
         private const string FolderID = "b1gfb1uihgi76nm570vu";
-        private const string IAM_TOKEN = "CggaATEVAgAAABKABFmTNXjSnFAMTelozGo6Kbx2k5FjqvWvC6ufDq4IKNWG0sAzbapAyH3ZcxH7x0qtT853o2BdNYx6nWlghNmjryizYbVX2J0bA2n3sU-rwCn044JaXG94aHLlReszQ0fUD7dydhLsKABz1fW7czz1hPsiuwpq7pwMwFUWSY_hcgoTLW9EBNkdqtGWKv5jQhtcUzV-toZzvdUNvwNbnui0A6kk0I-J24ZmSNveUSyVKREXJVWHmiQXQIRmLyiQu16O9Jpauuhtc-5_Py-pL6UEDqOQWYz1kXytBYHTmcdusVzPJPlDcWp0ximu-rMZVlaBKcYZ0R89myTSLnHw4vgtmR9ts58axFvMzgVnbQCKdCsRohRH4M1-qg16G8VgRkRBdim4V8AeU_rUzduQKLu_hJt8OeEOec-Avo4SjpDr6aKOePxisG6Qm3XLsYQWu8NRFdInICgz4rWCqunVXbwdahqGTkLabihAap6Wp75WUstvijBqBHdxxx7GMnkACooeM0W7ViD7LaYeUKKnnzvmsXCIuP41h6NlEZ_dLJhJogiP1YZBL87wT6WbfJ96nvS_3-Nvuiey1W-H9H6R9bpXGxUKpeOYgFQIjO_2yXF9apt-ObQHvEljph3rnEr8tO4j-ZurwOmw_8lG44tn3MzA3D-rs1zztUR5jkeBDti_2rmlGmAKIGY4YmQzZTRkMmRhZTQ2YmJhZjkyYmNhYjRmNGY3NGQ1EP_GpOUFGL-Yp-UFIh4KFGFqZWxuYjY2Yjg3cTc5a2Z2Z2xzEgZFLjFldW1aADACOAFKCBoBMRUCAAAAUAEg7wQ";
+        private const string IAM_TOKEN = "CggaATEVAgAAABKABJCOiAl34jOZrOg7139s9VeoBAVho8jB--BipTWiwZY_WXbJE4CzwZpr9XQwkd2h1wLBVyreU1clSWIoThHxAv8JZqsDGqvl-su34y92e7_doarIvwyANTbfYkqanborSkXwNn5QBAm-oxgZVBCg1VtmQFIZKV0Ek9SyVTFjD4sBiTxAD6n1An0d41Z-mjMDaQ-CxQMpswR2-ipPPe_TrAoL6YeHuH5uY_dJ_VxwciLJ52J7QkaLRDXPIWNLwMdSEIqcAXUYL_fQyZsgllPDQ2QxHqx2rn2DezUil3Ecu9WqVvktFyBFJb8k1BIYZbAaSLrTaDuiyn67yUoFBfNnity4yDoBnoiZ4BUn81ssod40doqHXzwpYr541KenKZy1RzelsHG3-xZuXBfZi4fgFGmQ2y_Zx1qBpb64haL5AjODEjgz2GhXBGpGFmLu3bHZKrY2VPw9Essy7OX5N3vVHqPcpd4l1ddtq7fRonjfT7f4ellbacF65OYLQIxzjpXXCDqEn0e90_NbzCYSZowi543z01vXic7wmq35S1nN5MJ3VCPx-ZF4ibFd3Q5ERDpMQ6CmAL5QbrhDYb2pIPp6WZIR1OpGWK3CHvnQZqi_wvx2Kir9s2AFbHXIiiVIfH13eXBlOaUDghgZS5TVSsolEGBRmYXgs5mLQ3p_9ux03yTsGmAKIGM1OTk0ZDg1M2I4ZTQyNDRhYjZjNTUwNTg2NGU4YjgxEJ36s-UFGN3LtuUFIh4KFGFqZWxuYjY2Yjg3cTc5a2Z2Z2xzEgZFLjFldW1aADACOAFKCBoBMRUCAAAAUAEg7wQ";
         private const string TRANSLATE_API_KEY = "trnsl.1.1.20190311T181408Z.4a0d3e2df91c4d25.7eec30933d8ab387cbbfc4e88619b1ed576aa616";
         private const string APP_ID = "6ef251ce-0f25-489f-9169-9fde31f76024";
         private const string LUIS_API_KEY = "a57183c4362242f28dad63a5c1b9f959";
@@ -93,7 +95,6 @@ namespace AlesyaTheTraveller.Extensions
                         }).Wait();
 
                     MaxUtterance = GetMaxBufferValue(args.Buffer, args.BytesRecorded);
-                    //System.Diagnostics.Debug.WriteLine(MaxUtterance);
                 }
             };
 
@@ -148,6 +149,16 @@ namespace AlesyaTheTraveller.Extensions
                             foreach (var alternative in chunk.Alternatives)
                             {
                                 System.Diagnostics.Debug.WriteLine($"***************************{alternative.Confidence}: {alternative.Text}");
+                                var englishVersion = await TranslateMessageAsync(alternative.Text);
+                                System.Diagnostics.Debug.WriteLine($"***************************{alternative.Confidence}: {englishVersion}");
+
+                                var tasks = new List<Task>
+                                {
+                                    _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishVersion}"),
+                                    _context.Clients.All.SendAsync("SayVoiceMessage", $"Хех, вы скаазали {alternative.Text}"),
+                                };
+
+                                await Task.WhenAll(tasks);
                             }
                         }
                     }
@@ -183,6 +194,16 @@ namespace AlesyaTheTraveller.Extensions
             short[] buffer = new short[recordedBytes / 2];
             Buffer.BlockCopy(recordedBuffer, 0, buffer, 0, recordedBytes);
             return buffer.Max();
+        }
+
+        private async Task<string> TranslateMessageAsync(string message)
+        {
+            var translator = new YandexTranslateSdk
+            {
+                ApiKey = TRANSLATE_API_KEY
+            };
+
+            return await translator.TranslateText(message, "ru-en");
         }
     }
 }

@@ -1,6 +1,6 @@
 import { Injectable, DebugElement } from '@angular/core';
 import * as signalR from '@aspnet/signalr';
-import { debug } from 'util';
+import { Observable, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +9,9 @@ export class SignalRService {
   private hubConnection: signalR.HubConnection
   private stream: MediaStream;
   private audioCtx: AudioContext;
+
+  public newMessageAdded = new Subject<string>();
+  public sayVoiceMessage = new Subject<string>();
 
   covertFloat32ToUInt8(buffer: Float32Array) {
     let l = buffer.length;
@@ -76,6 +79,18 @@ export class SignalRService {
   public stopVoiceStreamListener = () => {
     this.hubConnection.on('InvokeStopVoiceStream', () => {
       this.stopVoiceStream();
+    });
+  }
+
+  public broadcastMessageRuEngListener = () => {
+    this.hubConnection.on("BroadcastMessageRuEng", (message) => {
+      this.newMessageAdded.next(message);
+    });
+  }
+
+  public voiceMessageListener = () => {
+    this.hubConnection.on("SayVoiceMessage", (message) => {
+      this.sayVoiceMessage.next(message);
     });
   }
 }
