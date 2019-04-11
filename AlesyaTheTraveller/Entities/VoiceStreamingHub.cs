@@ -1,5 +1,6 @@
 ﻿using AlesyaTheTraveller.Extensions;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,11 +9,11 @@ namespace AlesyaTheTraveller.Entities
 {
     public class VoiceStreamingHub : Hub
     {
-        private VoiceStreamingHelper helper;
+        private readonly VoiceStreamingHelper helper;
 
-        public VoiceStreamingHub(IHubContext<VoiceStreamingHub> context)
+        public VoiceStreamingHub(IHubContext<VoiceStreamingHub> context, IConfiguration configuration)
         {
-            helper = new VoiceStreamingHelper(context);
+            helper = new VoiceStreamingHelper(context, configuration);
         }
 
         public async Task StartRecognition()

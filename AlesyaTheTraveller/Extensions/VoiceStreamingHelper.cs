@@ -2,6 +2,7 @@
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,36 +14,41 @@ using YandexTranslateCSharpSdk;
 
 namespace AlesyaTheTraveller.Extensions
 {
+    public class VoiceStreamArgs : EventArgs
+    {
+        public byte[] Buffer { get; set; }
+        public int BytesRecorded { get; set; }
+
+        public VoiceStreamArgs(byte[] buffer, int bytesRecorded)
+        {
+            Buffer = buffer;
+            BytesRecorded = bytesRecorded;
+        }
+    }
+
     public class VoiceStreamingHelper
     {
-        private readonly IHubContext<VoiceStreamingHub> _context;
-        public CancellationTokenSource CancellationTokenSource { get; private set; }
-
-        public class VoiceStreamArgs : EventArgs
-        {
-            public byte[] Buffer { get; set; }
-            public int BytesRecorded { get; set; }
-
-            public VoiceStreamArgs(byte[] buffer, int bytesRecorded)
-            {
-                Buffer = buffer;
-                BytesRecorded = bytesRecorded;
-            }
-        }
         public static event EventHandler<VoiceStreamArgs> OnDataAvailable;
 
-        private const string FolderID = "b1gfb1uihgi76nm570vu";
-        private const string IAM_TOKEN = "CggaATEVAgAAABKABJCOiAl34jOZrOg7139s9VeoBAVho8jB--BipTWiwZY_WXbJE4CzwZpr9XQwkd2h1wLBVyreU1clSWIoThHxAv8JZqsDGqvl-su34y92e7_doarIvwyANTbfYkqanborSkXwNn5QBAm-oxgZVBCg1VtmQFIZKV0Ek9SyVTFjD4sBiTxAD6n1An0d41Z-mjMDaQ-CxQMpswR2-ipPPe_TrAoL6YeHuH5uY_dJ_VxwciLJ52J7QkaLRDXPIWNLwMdSEIqcAXUYL_fQyZsgllPDQ2QxHqx2rn2DezUil3Ecu9WqVvktFyBFJb8k1BIYZbAaSLrTaDuiyn67yUoFBfNnity4yDoBnoiZ4BUn81ssod40doqHXzwpYr541KenKZy1RzelsHG3-xZuXBfZi4fgFGmQ2y_Zx1qBpb64haL5AjODEjgz2GhXBGpGFmLu3bHZKrY2VPw9Essy7OX5N3vVHqPcpd4l1ddtq7fRonjfT7f4ellbacF65OYLQIxzjpXXCDqEn0e90_NbzCYSZowi543z01vXic7wmq35S1nN5MJ3VCPx-ZF4ibFd3Q5ERDpMQ6CmAL5QbrhDYb2pIPp6WZIR1OpGWK3CHvnQZqi_wvx2Kir9s2AFbHXIiiVIfH13eXBlOaUDghgZS5TVSsolEGBRmYXgs5mLQ3p_9ux03yTsGmAKIGM1OTk0ZDg1M2I4ZTQyNDRhYjZjNTUwNTg2NGU4YjgxEJ36s-UFGN3LtuUFIh4KFGFqZWxuYjY2Yjg3cTc5a2Z2Z2xzEgZFLjFldW1aADACOAFKCBoBMRUCAAAAUAEg7wQ";
-        private const string TRANSLATE_API_KEY = "trnsl.1.1.20190311T181408Z.4a0d3e2df91c4d25.7eec30933d8ab387cbbfc4e88619b1ed576aa616";
-        private const string APP_ID = "6ef251ce-0f25-489f-9169-9fde31f76024";
-        private const string LUIS_API_KEY = "a57183c4362242f28dad63a5c1b9f959";
+        private readonly IConfiguration _configuration;
+        private readonly IHubContext<VoiceStreamingHub> _context;
+        private readonly string FolderID, IAM_TOKEN, TRANSLATE_API_KEY, APP_ID, LUIS_API_KEY;
 
         private const short SILENCE_THRESHOLD = 5000;
-        private static short MaxUtterance = -1;
+        private short MaxUtterance = -1;
+        public CancellationTokenSource CancellationTokenSource { get; private set; }
 
-        public VoiceStreamingHelper(IHubContext<VoiceStreamingHub> context)
+        public VoiceStreamingHelper(IHubContext<VoiceStreamingHub> context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
+
+            FolderID =  _configuration["Yandex:FolderId"];
+            IAM_TOKEN = _configuration["Yandex:IamToken"];
+            TRANSLATE_API_KEY = _configuration["Yandex:TranslateApiKey"];
+            LUIS_API_KEY = _configuration["Luis:ApiKey"];
+            APP_ID = _configuration["Luis:AppId"];
+
             CancellationTokenSource = new CancellationTokenSource();
         }
 
