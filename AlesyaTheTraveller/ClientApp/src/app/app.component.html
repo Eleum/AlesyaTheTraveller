@@ -1,11 +1,12 @@
 <body>
   <app-nav-menu></app-nav-menu>
   <div class="container">
-    <audio #id="voice-response" hidden></audio>
+    <audio id="voice-response" hidden></audio>
     <div id="inputForm">
       <input type="text" />
-      <input type="button" id="sendBtn" value="Старт" (click)="startRecording()" />
-      <input type="button" id="sendBtn" value="Стоп" (click)="stopRecording()" />
+      <input type="button" id="startRecButton" value="Старт" (click)="startRecording()" />
+      <input type="button" id="stopRecButton" value="Стоп" (click)="stopRecording()" />
+      <input type="button" id="sayVoiceButton" value="Тест" (click)="sayVoiceMessage('1')" />
     </div>
     <div class="container">
       <div class="row">

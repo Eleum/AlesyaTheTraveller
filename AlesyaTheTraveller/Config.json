@@ -1,0 +1,11 @@
+{
+  "Yandex": {
+    "IamToken": "CggaATEVAgAAABKABGntflc_4RYNhdc-CPxvaCLcP4r9SuNsI8c5ST77X9-hUOMnpv9r0WZbq746RvbVHuwKj-zsXfJ72XqcBjy3Zb9o01qT6ym8Wwt6m0aebs-Hswdu9B4xlPabeTmVU0B-80LxsRrO-V6KZBrsMmucDBmVpCWXlzrcYFRAmu82uSZFfA5TP_dJJtNnjm7gsYsc_xsUvCm56KDrX4eezvCSwfT-EP2JqFF7CubZstECjs5TcfPwlM-vb_n2D7vx_SrAef2aWBJsxswgLCjtnY_IcVzjEc6kyY-njm2Zc4JgciOVnnNAVZftSzlrXXCSu3h2xM0rf4NCifUK1i6aCZvIz79fAB_tqq5eWX7ZwZzh8wDkopgsGiv1s2VnihVJT-u33IDQrwc0vu2fibLL4S_TCXDpspSUq1Yjl-DJt0UrEy8hPfVAumxcJkPqP3xN81fkCgR8Wt6rU4q8W7f-gyWLzBx_sabDh6XW5wYwvQnRIctWoS07HhoyeFMNxsIZaPm59BbsT7AQIKZTIzLWvfAclLv2asxuniohi3yiNffh1OVT_Kz2KvOysP3IYXjT2EIDaL8DRDEfqbP-Khop2U-buNtNcIkuV6jeYw-9ntQ-QQujIfjgOl6fpRYqm-lHv8f3DBf6pCSRFQOC-jopg45D4w10IKtOxhjmhnJ7PbzLKSBrGmAKIDAzNTc1M2IzMmJmZjRjMTVhMDAxZGUwN2EyNzcxYTllEJOmueUFGNP3u-UFIh4KFGFqZWxuYjY2Yjg3cTc5a2Z2Z2xzEgZFLjFldW1aADACOAFKCBoBMRUCAAAAUAEg7wQ",
+    "FolderId": "b1gfb1uihgi76nm570vu",
+    "TranslateApiKey": "trnsl.1.1.20190311T181408Z.4a0d3e2df91c4d25.7eec30933d8ab387cbbfc4e88619b1ed576aa616"
+  },
+  "Luis": {
+    "ApiKey": "a57183c4362242f28dad63a5c1b9f959",
+    "AppId": "6ef251ce-0f25-489f-9169-9fde31f76024"
+  }
+}
