@@ -29,6 +29,11 @@ namespace AlesyaTheTraveller
             services.AddSingleton(Configuration);
 
             services.AddSignalR();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowOrigin",
+                    builder => builder.WithOrigins("https://localhost:44389/"));
+            });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             // In production, the Angular files will be served from this directory
@@ -73,6 +78,7 @@ namespace AlesyaTheTraveller
                 // To learn more about options for serving an Angular SPA from ASP.NET Core,
                 // see https://go.microsoft.com/fwlink/?linkid=864501
 
+                spa.Options.StartupTimeout = System.TimeSpan.FromSeconds(60);
                 spa.Options.SourcePath = "ClientApp";
 
                 if (env.IsDevelopment())

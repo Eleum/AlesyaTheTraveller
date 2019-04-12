@@ -1,4 +1,5 @@
 ﻿using AlesyaTheTraveller.Entities;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
@@ -18,8 +19,16 @@ namespace AlesyaTheTraveller.Controllers
             _configuration = configuration;
         }
 
+        [EnableCors("AllowOrigin")]
+        [HttpGet]
+        public IActionResult SayHello()
+        {
+            return new OkResult();
+        }
+
+        [EnableCors("AllowOrigin")]
         [HttpPost]
-        public async Task<HttpResponseMessage> GetAudioAsync([FromBody]string message)
+        public async Task<HttpResponseMessage> GetAudioAsync(string message)
         {
             string FolderID = _configuration["Yandex:FolderId"];
             string IAM_TOKEN = _configuration["Yandex:IamToken"];
@@ -37,6 +46,10 @@ namespace AlesyaTheTraveller.Controllers
 
             var content = new FormUrlEncodedContent(values);
             var response = await client.PostAsync(URL, content);
+
+            if (!response.IsSuccessStatusCode)
+                return response;
+
             var responseBytes = await response.Content.ReadAsByteArrayAsync();
             return new FileResponse(responseBytes, "audio/ogg", "voice-response.ogg");
         }
