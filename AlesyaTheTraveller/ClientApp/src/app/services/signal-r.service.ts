@@ -30,16 +30,13 @@ export class SignalRService {
 
     this.hubConnection
       .start()
-      .then(() => console.log("Connection started"))
-      .catch(err => console.log('Error while starting connection: ' + err));
-
-    console.log("hub connection is: " + this.hubConnection);
+      .then(() => console.log("Hub connection started"))
+      .catch(err => console.log('Error while starting hub connection: ' + err));
   }
 
   startVoiceStream() {
     this.hubConnection.send("StartRecognition")
-    .then(() => console.log("Recognition started successfully"))
-    .catch(err => console.log("server Recognition() error: " + err));
+      .catch(err => console.log("server Recognition() error: " + err));
 
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
