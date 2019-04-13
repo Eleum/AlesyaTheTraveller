@@ -7,8 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Yandex.Cloud.Ai.Stt.V2;
 using YandexTranslateCSharpSdk;
 
@@ -32,9 +34,8 @@ namespace AlesyaTheTraveller.Extensions
 
         private readonly IConfiguration _configuration;
         private readonly IHubContext<VoiceStreamingHub> _context;
-        private readonly string FolderID, IAM_TOKEN, TRANSLATE_API_KEY, APP_ID, LUIS_API_KEY;
+        private readonly string FOLDER_ID, IAM_TOKEN, TRANSLATE_API_KEY, LUIS_APP_URL, LUIS_APP_ID, LUIS_API_KEY;
 
-        private const short SILENCE_THRESHOLD = 5000;
         private short MaxUtterance = -1;
         public CancellationTokenSource CancellationTokenSource { get; private set; }
 
@@ -43,11 +44,12 @@ namespace AlesyaTheTraveller.Extensions
             _context = context;
             _configuration = configuration;
 
-            FolderID =  _configuration["Yandex:FolderId"];
+            FOLDER_ID =  _configuration["Yandex:FolderId"];
             IAM_TOKEN = _configuration["Yandex:IamToken"];
             TRANSLATE_API_KEY = _configuration["Yandex:TranslateApiKey"];
+            LUIS_APP_URL = _configuration["Luis:AppUrl"];
+            LUIS_APP_ID = _configuration["Luis:AppId"];
             LUIS_API_KEY = _configuration["Luis:ApiKey"];
-            APP_ID = _configuration["Luis:AppId"];
 
             CancellationTokenSource = new CancellationTokenSource();
         }
@@ -67,7 +69,7 @@ namespace AlesyaTheTraveller.Extensions
             var streamingConfig = new RecognitionConfig
             {
                 Specification = spec,
-                FolderId = FolderID
+                FolderId = FOLDER_ID
             };
             var metadata = new Metadata
             {
@@ -104,26 +106,27 @@ namespace AlesyaTheTraveller.Extensions
                 }
             };
 
-            var worker = new BackgroundWorker
+            var silenceCheckWorker = new BackgroundWorker
             {
                 WorkerSupportsCancellation = true
             };
-            worker.DoWork += (sender, args) =>
+            silenceCheckWorker.DoWork += (sender, args) =>
             {
                 var timeout = 2500;
                 var currentTime = 0;
+                var silenceTreshold = 5000;
 
                 while (!args.Cancel)
                 {
                     //System.Diagnostics.Debug.WriteLine($"working... current time is {currentTime}");
-                    if (worker.CancellationPending || currentTime >= timeout)
+                    if (silenceCheckWorker.CancellationPending || currentTime >= timeout)
                     {
                         args.Cancel = true;
                         //System.Diagnostics.Debug.WriteLine("recording stopped from background worker");
                         return;
                     }
 
-                    if (MaxUtterance < SILENCE_THRESHOLD)
+                    if (MaxUtterance < silenceTreshold)
                     {
                         currentTime += 100;
                     }
@@ -134,17 +137,17 @@ namespace AlesyaTheTraveller.Extensions
                     Thread.Sleep(100);
                 }
             };
-            worker.RunWorkerCompleted += (sender, args) =>
+            silenceCheckWorker.RunWorkerCompleted += (sender, args) =>
             {
                 _context.Clients.All.SendAsync("InvokeStopVoiceStream");
                 CancellationTokenSource.Cancel();
             };
 
-            var printWorker = new BackgroundWorker
+            var notifyWorker = new BackgroundWorker
             {
                 WorkerSupportsCancellation = true
             };
-            printWorker.DoWork += async (sender, args) =>
+            notifyWorker.DoWork += async (sender, args) =>
             {
                 try
                 {
@@ -152,20 +155,22 @@ namespace AlesyaTheTraveller.Extensions
                     {
                         foreach (var chunk in streamingCall.ResponseStream.Current.Chunks)
                         {
-                            foreach (var alternative in chunk.Alternatives)
+                            // or use foreach (var alternative in chunk.Alternatives)
+
+                            var alternative = chunk.Alternatives.First();
+                            var englishAlternative = await TranslateMessageAsync(alternative.Text);
+                            var intent = await GetMessageIntentAsync(englishAlternative);
+
+                            var tasks = new List<Task>
                             {
-                                System.Diagnostics.Debug.WriteLine($"***************************{alternative.Confidence}: {alternative.Text}");
-                                var englishVersion = await TranslateMessageAsync(alternative.Text);
-                                System.Diagnostics.Debug.WriteLine($"***************************{alternative.Confidence}: {englishVersion}");
+                                _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}"),
+                                _context.Clients.All.SendAsync("BroadcastIntent", $"{intent}"),
+                                _context.Clients.All.SendAsync("SayVoiceMessage", $"{alternative.Text}"),
+                            };
 
-                                var tasks = new List<Task>
-                                {
-                                    _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishVersion}"),
-                                    _context.Clients.All.SendAsync("SayVoiceMessage", $"Хех, вы скаазали {alternative.Text}"),
-                                };
+                            await Task.WhenAll(tasks);
 
-                                await Task.WhenAll(tasks);
-                            }
+                            break;
                         }
                     }
                 }
@@ -175,16 +180,14 @@ namespace AlesyaTheTraveller.Extensions
                 }
             };
 
-            worker.RunWorkerAsync();
-            printWorker.RunWorkerAsync();
+            silenceCheckWorker.RunWorkerAsync();
+            notifyWorker.RunWorkerAsync();
 
             while(!token.IsCancellationRequested)
-            {
                 await Task.Delay(25);
-            }
 
-            //System.Diagnostics.Debug.WriteLine("RECORDING STOPPED");
-            lock (writeLock) isWriteActive = false;
+            lock (writeLock)
+                isWriteActive = false;
 
             await streamingCall.RequestStream.CompleteAsync();
             return 0;
@@ -210,6 +213,32 @@ namespace AlesyaTheTraveller.Extensions
             };
 
             return await translator.TranslateText(message, "ru-en");
+        }
+
+        private async Task<string> GetMessageIntentAsync(string message)
+        {
+            var queryString = HttpUtility.ParseQueryString(string.Empty);
+
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", LUIS_API_KEY);
+
+            queryString["q"] = message;
+            queryString["timezoneOffset"] = "0";
+            queryString["verbose"] = "false";
+            queryString["spellCheck"] = "false";
+            queryString["staging"] = "true";
+
+            var uri = LUIS_APP_URL + LUIS_APP_ID + "?" + queryString;
+            var response = await client.GetAsync(uri);
+
+            if(response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                return "ERRORRRRRRRRRRRRRRRRRRRRR";
+            }
         }
     }
 }

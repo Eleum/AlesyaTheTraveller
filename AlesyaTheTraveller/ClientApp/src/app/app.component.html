@@ -6,11 +6,15 @@
       <input type="text" />
       <input type="button" id="startRecButton" value="Старт" (click)="startRecording()" />
       <input type="button" id="stopRecButton" value="Стоп" (click)="stopRecording()" />
-      <input type="button" id="sayVoiceButton" value="Тест" (click)="sayVoiceMessage('1')" />
     </div>
     <div class="container">
       <div class="row">
-        <p style="white-space: pre-line;">{{message}}</p>
+        <div class="col-md-6">
+          <p style="white-space: pre-line;">{{message}}</p>
+        </div>
+        <div class="col-md-6">
+          <p style="white-space: pre-line;">{{intent}}</p>
+        </div>
       </div>
     </div>
     <router-outlet></router-outlet>

@@ -10,8 +10,9 @@ export class SignalRService {
   private stream: MediaStream;
   private audioCtx: AudioContext;
 
-  public newMessageAdded = new Subject<string>();
-  public sayVoiceMessage = new Subject<string>();
+  public newMessageReceived = new Subject<string>();
+  public voiceMessageReceived = new Subject<string>();
+  public newIntentReceived = new Subject<string>();
 
   covertFloat32ToUInt8(buffer: Float32Array) {
     let l = buffer.length;
@@ -22,7 +23,7 @@ export class SignalRService {
     return btoa(String.fromCharCode.apply(null, new Uint8Array(buf.buffer)));
   }
 
-  public startConnection() {
+  startConnection() {
     this.hubConnection =
       new signalR.HubConnectionBuilder()
         .withUrl("https://localhost:44389/stream")
@@ -61,7 +62,6 @@ export class SignalRService {
         console.error('startRecording() error: ' + e.message);
       })
   }
-
   stopVoiceStream() {
     try {
       let stream = this.stream;
@@ -78,16 +78,19 @@ export class SignalRService {
       this.stopVoiceStream();
     });
   }
-
   public broadcastMessageRuEngListener = () => {
     this.hubConnection.on("BroadcastMessageRuEng", (message) => {
-      this.newMessageAdded.next(message);
+      this.newMessageReceived.next(message);
     });
   }
-
-  public voiceMessageListener = () => {
+  public broadcastVoiceMessageListener = () => {
     this.hubConnection.on("SayVoiceMessage", (message) => {
-      this.sayVoiceMessage.next(message);
+      this.voiceMessageReceived.next(message);
+    });
+  }
+  public broadcastIntentListener = () => {
+    this.hubConnection.on("BroadcastIntent", (intent) => {
+      this.newIntentReceived.next(intent);
     });
   }
 }
