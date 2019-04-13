@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SignalRService } from './services/signal-r.service';
-import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Response } from '@angular/http';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +9,7 @@ import { Response } from '@angular/http';
 })
 export class AppComponent implements OnInit {
   public message = "";
+  public intent = "";
 
   constructor(public signalRService: SignalRService, private http: HttpClient) { }
 
@@ -17,15 +17,25 @@ export class AppComponent implements OnInit {
     this.signalRService.startConnection();
     this.signalRService.stopVoiceStreamListener();
     this.signalRService.broadcastMessageRuEngListener();
+    this.signalRService.broadcastVoiceMessageListener();
+    this.signalRService.broadcastIntentListener();
 
-    this.signalRService.newMessageAdded
+    // subscribe to update UI with message on new messages from server
+    this.signalRService.newMessageReceived
       .subscribe((message) => {
         this.message = message;
       });
 
-    this.signalRService.sayVoiceMessage
-      .subscribe((message) => {
+    // subscribe to update UI with intent on new intents from server
+    this.signalRService.newIntentReceived
+      .subscribe((intent) => {
+        this.intent = intent;
+      });
 
+    // subscribe to say new messages
+    this.signalRService.voiceMessageReceived
+      .subscribe((message) => {
+        this.sayVoiceMessageHandler(message);
       });
   }
 
@@ -38,45 +48,37 @@ export class AppComponent implements OnInit {
     this.signalRService.stopVoiceStream();
   }
 
-  async fetchAudio(message: string) {
+  private sayVoiceMessageHandler(message: string) {
     var formData = new FormData();
-    formData.append('message', 'приветь');
-
-    const requestOptions = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: formData
-    };
-  }
-
-  sayVoiceMessage(message: string) {
-    var formData = new FormData();
-    formData.append('message', 'приветь');
-    this.http.post('https://localhost:44389/api/VoiceStreaming', formData, { observe: 'response', responseType: 'blob' })
-      .subscribe((response: HttpResponse<any>) => {
-        debugger;
-        console.log(response.body);
-        let headers = Array.from(response.body.content.headers);
-        let fileSize = parseInt(headers.filter((header: any) => { return header.key === 'Content-Length' })[0]['value'][0]);
-        let disposition = headers.filter((header: any) => { return header.key === 'Content-Disposition' })[0]['value'][0];
-
-        if (disposition && disposition.indexOf('attachment') !== -1) {
-          let fileName = "";
-          let filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-          let matches = filenameRegex.exec(disposition);
-
-          if (matches != null && matches[1]) {
-            fileName = matches[1].replace(/['"]/g, '');
-          } else {
-            console.error("Response disposition is not valid: " + disposition)
-          }
+    formData.append('message', `лошара, ты сказал ${message}`);
+    this.http.post('https://localhost:44389/api/VoiceStreaming', formData)
+      .subscribe((response: any) => {
+        let byteCharacters = atob(response.response);
+        let byteNumbers = new Array(byteCharacters.length);
+        for (var i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
         }
 
+        let byteArray = new Uint8Array(byteNumbers);
+        let blob = new Blob([byteArray], { type: response.contentType });
+        let url = URL.createObjectURL(blob);
 
+        let audio = new Audio();
+        audio.src = url;
+        let playPromise = audio.play();
+
+        // only Chrome(?) supports play promise
+        if (playPromise !== undefined) {
+          playPromise.then(function () {
+            // playback started
+          }).catch(function (error) {
+            console.error(error);
+            // playback failed.
+            // do smthing with it
+          });
+        }
       }, err => {
-        console.log(err)
+        console.error(err)
       });
   }
 
