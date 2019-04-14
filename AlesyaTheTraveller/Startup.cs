@@ -26,6 +26,8 @@ namespace AlesyaTheTraveller
         {
             services.AddHostedService<ConsumeScopedServiceHostedService>();
             services.AddScoped<IScopedProcessingService, ScopedProcessingService>();
+            services.AddScoped<IFlightDataService, FlightDataService>();
+            services.AddSingleton<IFlightDataCacheService, FlightDataCacheService>();
             services.AddSingleton(Configuration);
 
             services.AddSignalR();

@@ -6,15 +6,35 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace AlesyaTheTraveller
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            CreateWebHostBuilder(args).Build().Run();
+            IWebHost webHost = CreateWebHostBuilder(args).Build();
+
+            using (var scope = webHost.Services.CreateScope())
+            {
+                var cacheService = scope.ServiceProvider.GetRequiredService<Services.IFlightDataCacheService>();
+                var dataService = scope.ServiceProvider.GetRequiredService<Services.IFlightDataService>();
+
+                var tasks = new List<Task<Entities.DestinationEntity[]>>
+                {
+                    dataService.GetData(Entities.DestinationType.Country),
+                    dataService.GetData(Entities.DestinationType.City)
+                };
+
+                foreach (var task in tasks)
+                {
+                    Parallel.ForEach(await task, (x) => cacheService.AddData(x.Code, x));
+                }
+            }
+
+            webHost.Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>

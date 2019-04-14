@@ -1,7 +1,5 @@
-﻿using AlesyaTheTraveller.Entities;
-using Microsoft.AspNetCore.Cors;
+﻿using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.IO;
@@ -20,11 +18,10 @@ namespace AlesyaTheTraveller.Controllers
             _configuration = configuration;
         }
 
-        [EnableCors("AllowOrigin")]
         [HttpGet]
         public IActionResult SayHello()
         {
-            return new OkResult();
+            return new JsonResult("42");
         }
 
         [EnableCors("AllowOrigin")]
