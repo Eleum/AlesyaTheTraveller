@@ -1,9 +1,9 @@
-﻿using AlesyaTheTraveller.Extensions;
+﻿using System;
+using System.Threading.Tasks;
+using AlesyaTheTraveller.Extensions;
+using AlesyaTheTraveller.Services;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AlesyaTheTraveller.Entities
 {
@@ -11,9 +11,9 @@ namespace AlesyaTheTraveller.Entities
     {
         private readonly VoiceStreamingHelper helper;
 
-        public VoiceStreamingHub(IHubContext<VoiceStreamingHub> context, IConfiguration configuration)
+        public VoiceStreamingHub(IHubContext<VoiceStreamingHub> context, IFlightDataService flightData, IFlightDataCacheService flightDataCache, IConfiguration configuration)
         {
-            helper = new VoiceStreamingHelper(context, configuration);
+            helper = new VoiceStreamingHelper(context, flightData, flightDataCache, configuration);
         }
 
         public async Task StartRecognition()

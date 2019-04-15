@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace AlesyaTheTraveller.Services
     public interface IFlightDataCacheService
     {
         bool AddData(string key, DestinationEntity value);
-        DestinationEntity GetDestination(string key);
+        DestinationEntity GetDestination(string stringLookUp);
     }
 
     public class FlightDataCacheService : IFlightDataCacheService
@@ -20,11 +21,12 @@ namespace AlesyaTheTraveller.Services
         public FlightDataCacheService()
         {
             _cache = new ConcurrentDictionary<string, DestinationEntity>();
+            Debug.WriteLine("singleton initiallized");
         }
 
-        public DestinationEntity GetDestination(string key)
+        public DestinationEntity GetDestination(string stringLookUp)
         {
-            return _cache.GetValueOrDefault(key);
+            return _cache.Where(x => x.Value.NameTranslations.En.ToLower() == stringLookUp.ToLower()).FirstOrDefault().Value;
         }
 
         public bool AddData(string key, DestinationEntity value)

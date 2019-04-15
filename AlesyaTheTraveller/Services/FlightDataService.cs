@@ -8,13 +8,20 @@ namespace AlesyaTheTraveller.Services
 {
     public interface IFlightDataService
     {
+        string CreateSession(string intentJson);
+
         Task<DestinationEntity[]> GetData(DestinationType type);
 
         // get tickets
     }
-
+    
     public class FlightDataService : IFlightDataService
     {
+        public string CreateSession(string intentJson)
+        {
+            return "";
+        }
+
         public async Task<DestinationEntity[]> GetData(DestinationType type)
         {
             var url = "http://api.travelpayouts.com/data/ru/" + 

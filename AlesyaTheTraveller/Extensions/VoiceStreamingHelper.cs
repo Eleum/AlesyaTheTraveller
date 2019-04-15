@@ -1,4 +1,5 @@
 ﻿using AlesyaTheTraveller.Entities;
+using AlesyaTheTraveller.Services;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.AspNetCore.SignalR;
@@ -34,14 +35,20 @@ namespace AlesyaTheTraveller.Extensions
 
         private readonly IConfiguration _configuration;
         private readonly IHubContext<VoiceStreamingHub> _context;
+        private readonly IFlightDataService _flightData;
+        private readonly IFlightDataCacheService _flightDataCache;
         private readonly string FOLDER_ID, IAM_TOKEN, TRANSLATE_API_KEY, LUIS_APP_URL, LUIS_APP_ID, LUIS_API_KEY;
 
         private short MaxUtterance = -1;
         public CancellationTokenSource CancellationTokenSource { get; private set; }
 
-        public VoiceStreamingHelper(IHubContext<VoiceStreamingHub> context, IConfiguration configuration)
+        public VoiceStreamingHelper(IHubContext<VoiceStreamingHub> context, 
+                                    IFlightDataService flightData, IFlightDataCacheService flightDataCache, 
+                                    IConfiguration configuration)
         {
             _context = context;
+            _flightData = flightData;
+            _flightDataCache = flightDataCache;
             _configuration = configuration;
 
             FOLDER_ID =  _configuration["Yandex:FolderId"];
@@ -159,7 +166,10 @@ namespace AlesyaTheTraveller.Extensions
 
                             var alternative = chunk.Alternatives.First();
                             var englishAlternative = await TranslateMessageAsync(alternative.Text);
-                            var intent = await GetMessageIntentAsync(englishAlternative);
+
+                            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache);
+                            var intent = await proc.GetMessageIntentAsync(englishAlternative);
+                            var a = proc.ParseIntent(intent);
 
                             var tasks = new List<Task>
                             {
@@ -188,7 +198,7 @@ namespace AlesyaTheTraveller.Extensions
 
             lock (writeLock)
                 isWriteActive = false;
-
+            
             await streamingCall.RequestStream.CompleteAsync();
             return 0;
         }
@@ -213,32 +223,6 @@ namespace AlesyaTheTraveller.Extensions
             };
 
             return await translator.TranslateText(message, "ru-en");
-        }
-
-        private async Task<string> GetMessageIntentAsync(string message)
-        {
-            var queryString = HttpUtility.ParseQueryString(string.Empty);
-
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", LUIS_API_KEY);
-
-            queryString["q"] = message;
-            queryString["timezoneOffset"] = "0";
-            queryString["verbose"] = "false";
-            queryString["spellCheck"] = "false";
-            queryString["staging"] = "true";
-
-            var uri = LUIS_APP_URL + LUIS_APP_ID + "?" + queryString;
-            var response = await client.GetAsync(uri);
-
-            if(response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadAsStringAsync();
-            }
-            else
-            {
-                return "ERRORRRRRRRRRRRRRRRRRRRRR";
-            }
         }
     }
 }
