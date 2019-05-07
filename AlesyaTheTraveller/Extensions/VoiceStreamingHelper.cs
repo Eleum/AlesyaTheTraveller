@@ -63,6 +63,14 @@ namespace AlesyaTheTraveller.Extensions
 
         public async Task<object> Recognize(CancellationToken token)
         {
+            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
+            var intent = await proc.GetMessageIntentAsync("tickets from Minsk to Paris");
+
+            var sessionParams = await proc.ParseIntent(intent);
+            var sessionId = await _flightData.CreateSession(sessionParams);
+            var results = _flightData.PollSessionResults(sessionId);
+
+            return null;
             var spec = new RecognitionSpec
             {
                 LanguageCode = "ru-RU",
@@ -72,7 +80,6 @@ namespace AlesyaTheTraveller.Extensions
                 AudioEncoding = RecognitionSpec.Types.AudioEncoding.Linear16Pcm,
                 SampleRateHertz = 48000
             };
-
             var streamingConfig = new RecognitionConfig
             {
                 Specification = spec,
@@ -167,9 +174,11 @@ namespace AlesyaTheTraveller.Extensions
                             var alternative = chunk.Alternatives.First();
                             var englishAlternative = await TranslateMessageAsync(alternative.Text);
 
-                            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache);
-                            var intent = await proc.GetMessageIntentAsync(englishAlternative);
-                            var a = proc.ParseIntent(intent);
+                            //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache);
+                            //var intent = await proc.GetMessageIntentAsync(englishAlternative);
+
+                            //var sessionParams = proc.ParseIntent(intent);
+                            //var a = await _flightData.CreateSession(sessionParams);
 
                             var tasks = new List<Task>
                             {

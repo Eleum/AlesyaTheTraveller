@@ -35,11 +35,13 @@ namespace AlesyaTheTraveller.Extensions
     {
         private readonly LuisConfig _config;
         private readonly IFlightDataCacheService _cache;
+        private readonly IFlightDataService _dataService;
 
-        public IntentProcessor(LuisConfig config, IFlightDataCacheService cache)
+        public IntentProcessor(LuisConfig config, IFlightDataCacheService cache, IFlightDataService dataService)
         {
             _config = config;
             _cache = cache;
+            _dataService = dataService;
         }
 
         public async Task<string> GetMessageIntentAsync(string message)
@@ -68,20 +70,19 @@ namespace AlesyaTheTraveller.Extensions
             }
         }
 
-        public string ParseIntent(string intentJson)
+        public async Task<Dictionary<string, string>> ParseIntent(string intentJson)
         {
-            var queryString = HttpUtility.ParseQueryString(string.Empty);
+            var queryParams = new Dictionary<string, string>();
             var intent = JsonConvert.DeserializeObject<Intent>(intentJson);
 
             if (intent.TopScoringIntent.Intent != "Travelling")
                 return null; // think of explicit error notify
 
-            queryString["country"] = "BY";
-            queryString["currency"] = "BYN";
-            queryString["locale"] = "ru-RU";
-            queryString["adult"] = "1";
-            queryString["outboundDate"] = DateTime.Now.ToString("yyyy-MM-dd");
-            queryString["originPlace"] = "MSQ-sky";
+            queryParams.Add("country", "BY");
+            queryParams.Add("currency", "BYN");
+            queryParams.Add("locale", "ru-RU");
+            queryParams.Add("adult", "1");
+            queryParams.Add("outboundDate", DateTime.Now.ToString("yyyy-MM-dd"));
 
             var destinationCount = intent.Entities.Count(x => x.Type == "Places.DestinationAddress");
             if (destinationCount == 0)
@@ -96,7 +97,7 @@ namespace AlesyaTheTraveller.Extensions
                 var destination = intent.Entities.First(x => x.Type == "Places.DestinationAddress");
                 if (!placeQualifiers.Any())
                 {
-                    queryString["destinationPlace"] = _cache.GetDestination(destination.Value).Code + "-sky";
+                    queryParams.Add("destinationPlace", _cache.GetDestination(destination.Value).Code + "-sky");
                 }
                 else
                 {
@@ -115,18 +116,19 @@ namespace AlesyaTheTraveller.Extensions
                 }
                 else
                 {
-                    var validPqs = new List<KeyValuePair<int, PlaceQualifierDirection>>();
+                    // valid place qualifiers
+                    var validPqs = new Dictionary<int, PlaceQualifierDirection>();
                     foreach (var item in placeQualifiers)
                     {
                         // if this place qualifier is before destination address in intent string
                         if (intent.Entities.Any(x => x.StartIndex == item.EndIndex + 2 && x.Type == "Places.DestinationAddress"))
                         {
-                            validPqs.Add(new KeyValuePair<int, PlaceQualifierDirection>(
-                                item.EndIndex,
+                            validPqs.Add(
+                                item.EndIndex, 
                                 Enum.TryParse(typeof(PlaceQualifierDirection), item.Value, true, out var direction)
                                     ? (PlaceQualifierDirection)direction
                                     : PlaceQualifierDirection.None
-                                ));
+                                );
                         }
                     }
 
@@ -138,11 +140,19 @@ namespace AlesyaTheTraveller.Extensions
                         }
                         else
                         {
-                            queryString[item.Value == PlaceQualifierDirection.From ? "originPlace" : "destinationPlace"] = 
-                                _cache.GetDestination(intent.Entities
-                                    .Where(x => x.StartIndex == item.Key + 2 && x.Type == "Places.DestinationAddress")
-                                    .First().Value
-                                ).Code + "-sky";
+                            var query = intent.Entities
+                                .Where(x => x.StartIndex == item.Key + 2 && x.Type == "Places.DestinationAddress")
+                                .First().Value;
+                            var countryServiceCode = _cache.GetDestination(query).CountryCode;
+                            var country = _cache.GetCountryByCode(countryServiceCode);
+
+                            var places = await _dataService.GetPlacesList(query);
+
+                            if (places.Any())
+                            {
+                                queryParams.Add(item.Value == PlaceQualifierDirection.From ? "originPlace" : "destinationPlace",
+                                    places.First(x => x.CountryName == country.Name).PlaceId);
+                            }
                         }
                     }
 
@@ -152,7 +162,7 @@ namespace AlesyaTheTraveller.Extensions
                 }
             }
 
-            return "" + queryString;
+            return queryParams;
         }
     }
 }

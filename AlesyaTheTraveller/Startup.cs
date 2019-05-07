@@ -1,12 +1,11 @@
-using AlesyaTheTraveller.Entities;
-using AlesyaTheTraveller.Extensions;
-using AlesyaTheTraveller.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using AlesyaTheTraveller.Entities;
+using AlesyaTheTraveller.Services;
 
 namespace AlesyaTheTraveller
 {

@@ -1,25 +1,61 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web;
 using AlesyaTheTraveller.Entities;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace AlesyaTheTraveller.Services
 {
     public interface IFlightDataService
     {
-        string CreateSession(string intentJson);
-
         Task<DestinationEntity[]> GetData(DestinationType type);
+        Task<PlaceEntity[]> GetPlacesList(string query);
+        Task<string> CreateSession(Dictionary<string, string> requestParams);
+        Task<RootObject> PollSessionResults(string sessionId);
 
         // get tickets
     }
     
     public class FlightDataService : IFlightDataService
     {
-        public string CreateSession(string intentJson)
+        private IConfiguration _config;
+        private HttpClient _client;
+
+        public FlightDataService(IConfiguration config)
         {
-            return "";
+            _config = config;
+        }
+
+        public async Task<string> CreateSession(Dictionary<string, string> requestParams)
+        {
+            _client = new HttpClient();
+            _client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:Host"]);
+            _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
+
+            using (var content = new FormUrlEncodedContent(requestParams))
+            {
+                content.Headers.Clear();
+                content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+                var uri = _config["RapidApi:Url"] + _config["RapidApi:FlightSearch"] + _config["RapidApi:Version"];
+                var response = await _client.PostAsync(uri, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var segments = response.Headers.Location.Segments;
+                    return segments[segments.Length - 1];
+                }
+                else
+                {
+                    var a = response.Content.ReadAsStringAsync();
+                    // errorka
+                }
+            }
+
+            return null;
         }
 
         public async Task<DestinationEntity[]> GetData(DestinationType type)
@@ -32,15 +68,55 @@ namespace AlesyaTheTraveller.Services
             var client = new HttpClient();
             var response = await client.GetAsync(url);
 
-            if(response.IsSuccessStatusCode)
-            {
-                var json = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<DestinationEntity[]>(json);
-            }
-            else
-            {
+            if(!response.IsSuccessStatusCode)
+            { 
                 return null;
             }
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<DestinationEntity[]>(json);
+        }
+
+        public async Task<PlaceEntity[]> GetPlacesList(string query)
+        {
+            _client = new HttpClient();
+            _client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:Host"]);
+            _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
+
+            var queryParams = HttpUtility.ParseQueryString(string.Empty);
+            queryParams["query"] = query;
+
+            var uri = _config["RapidApi:Url"] + _config["RapidApi:PlaceSearch"] + _config["RapidApi:Version"] + 
+                _config["RapidApi:LocaleSettings"] + "?" + queryParams;
+            var response = await _client.GetAsync(uri);
+
+            if(!response.IsSuccessStatusCode)
+            {
+                // error
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<Places>(json).Entities;
+        }
+
+        public async Task<RootObject> PollSessionResults(string sessionId)
+        {
+            _client = new HttpClient();
+            _client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:Host"]);
+            _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
+
+            var uri = _config["RapidApi:Url"] + _config["RapidApi:FlightSearch"] + "uk2/" +
+                _config["RapidApi:Version"] + sessionId + "?pageSize=1";
+            var response = await _client.GetAsync(uri);
+
+            if(!response.IsSuccessStatusCode)
+            {
+                // error
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var a = JsonConvert.DeserializeObject<RootObject>(json);
+            return a;
         }
     }
 }

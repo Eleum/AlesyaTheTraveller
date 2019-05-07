@@ -12,6 +12,7 @@ namespace AlesyaTheTraveller.Services
     {
         bool AddData(string key, DestinationEntity value);
         DestinationEntity GetDestination(string stringLookUp);
+        DestinationEntity GetCountryByCode(string code);
     }
 
     public class FlightDataCacheService : IFlightDataCacheService
@@ -26,7 +27,15 @@ namespace AlesyaTheTraveller.Services
 
         public DestinationEntity GetDestination(string stringLookUp)
         {
-            return _cache.Where(x => x.Value.NameTranslations.En.ToLower() == stringLookUp.ToLower()).FirstOrDefault().Value;
+            return _cache
+                .Where(x => x.Value.NameTranslations.En.ToLower() == stringLookUp.ToLower())
+                .FirstOrDefault()
+                .Value;
+        }
+
+        public DestinationEntity GetCountryByCode(string code)
+        {
+            return _cache.FirstOrDefault(x => x.Value.Code == code).Value;
         }
 
         public bool AddData(string key, DestinationEntity value)
