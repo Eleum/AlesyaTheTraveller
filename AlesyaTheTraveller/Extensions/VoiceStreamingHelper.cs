@@ -72,10 +72,11 @@ namespace AlesyaTheTraveller.Extensions
             await _context.Clients.All.SendAsync("SwitchToFlightData");
             
             var sessionId = await _flightData.CreateSession(sessionParams);
-            var results = await _flightData.PollSessionResults(sessionId);
+            var flights = await _flightData.PollSessionResults(sessionId)
+                .ContinueWith((x) => _flightData.FormFlightData(x.Result), 
+                TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
 
-            await _context.Clients.All.SendAsync("FetchFlightData", results);
-            var a = 1;
+            await _context.Clients.All.SendAsync("FetchFlightData", flights);
 
             return null;
 

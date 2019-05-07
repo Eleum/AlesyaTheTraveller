@@ -82,7 +82,7 @@ namespace AlesyaTheTraveller.Extensions
             queryParams.Add("currency", "BYN");
             queryParams.Add("locale", "ru-RU");
             queryParams.Add("adult", "1");
-            queryParams.Add("outboundDate", DateTime.Now.ToString("yyyy-MM-dd"));
+            queryParams.Add("outboundDate", DateTime.Now.AddDays(1).ToString("yyyy-MM-dd"));
 
             var destinationCount = intent.Entities.Count(x => x.Type == "Places.DestinationAddress");
             if (destinationCount == 0)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
@@ -15,7 +16,7 @@ namespace AlesyaTheTraveller.Services
         Task<PlaceEntity[]> GetPlacesList(string query);
         Task<string> CreateSession(Dictionary<string, string> requestParams);
         Task<RootObject> PollSessionResults(string sessionId);
-
+        List<FlightData> FormFlightData(RootObject root);
         // get tickets
     }
     
@@ -106,7 +107,7 @@ namespace AlesyaTheTraveller.Services
             _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
 
             var uri = _config["RapidApi:Url"] + _config["RapidApi:FlightSearch"] + "uk2/" +
-                _config["RapidApi:Version"] + sessionId + "?pageSize=1";
+                _config["RapidApi:Version"] + sessionId + "?pageIndex=1&pageSize=2";
             var response = await _client.GetAsync(uri);
 
             if(!response.IsSuccessStatusCode)
@@ -117,6 +118,29 @@ namespace AlesyaTheTraveller.Services
             var json = await response.Content.ReadAsStringAsync();
             var a = JsonConvert.DeserializeObject<RootObject>(json);
             return a;
+        }
+
+        public List<FlightData> FormFlightData(RootObject root)
+        {
+            var itineraries = new List<FlightData>();
+
+            foreach(var itinerary in root.Itineraries)
+            {
+                var outboundInfo = root.Legs.First(x => x.Id == itinerary.OutboundLegId);
+
+                itineraries.Add(new FlightData
+                {
+                    CarrierImageUri = root.Carriers.First(x => x.Id == outboundInfo.Carriers[0]).ImageUrl,
+                    Origin = root.Places.First(x => x.Id == outboundInfo.OriginStation).Name,
+                    Destination = root.Places.First(x => x.Id == outboundInfo.DestinationStation).Name,
+                    DepartureTime = outboundInfo.Departure,
+                    ArrivalTime = outboundInfo.Arrival,
+                    Cost = itinerary.PricingOptions.First().Price,
+                    Stops = outboundInfo.Stops.Count()
+                });
+            }
+
+            return itineraries;
         }
     }
 }

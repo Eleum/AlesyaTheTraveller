@@ -27,6 +27,7 @@ namespace AlesyaTheTraveller.Services
 
         public DestinationEntity GetDestination(string stringLookUp)
         {
+            var a = _cache.Where(x => x.Value.NameTranslations.En.ToLower() == stringLookUp.ToLower());
             return _cache
                 .Where(x => x.Value.NameTranslations.En.ToLower() == stringLookUp.ToLower())
                 .FirstOrDefault()

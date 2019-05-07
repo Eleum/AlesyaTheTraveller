@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import * as signalR from '@aspnet/signalr';
-import { RootObject } from '../flight-data/flight-data.component';
+import { FlightData } from '../flight-data/flight-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +15,7 @@ export class SignalRService {
   public newMessageReceived = new Subject<string>();
   public voiceMessageReceived = new Subject<string>();
   public newIntentReceived = new Subject<string>();
-  public flightDataFetched = new Subject<RootObject>();
+  public flightDataFetched = new Subject<FlightData>();
 
   covertFloat32ToUInt8(buffer: Float32Array) {
     let l = buffer.length;
@@ -105,7 +105,6 @@ export class SignalRService {
   }
   public fetchFlightDataListener = () => {
     this.hubConnection.on("FetchFlightData", (rootObj) => {
-      console.log("123")
       this.flightDataFetched.next(rootObj);
     });
   }
