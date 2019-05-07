@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import * as signalR from '@aspnet/signalr';
+import { RootObject } from '../flight-data/flight-data.component';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +15,7 @@ export class SignalRService {
   public newMessageReceived = new Subject<string>();
   public voiceMessageReceived = new Subject<string>();
   public newIntentReceived = new Subject<string>();
+  public flightDataFetched = new Subject<RootObject>();
 
   covertFloat32ToUInt8(buffer: Float32Array) {
     let l = buffer.length;
@@ -22,6 +25,8 @@ export class SignalRService {
     }
     return btoa(String.fromCharCode.apply(null, new Uint8Array(buf.buffer)));
   }
+
+  constructor(private router: Router) { }
 
   startConnection() {
     this.hubConnection =
@@ -91,6 +96,17 @@ export class SignalRService {
   public broadcastIntentListener = () => {
     this.hubConnection.on("BroadcastIntent", (intent) => {
       this.newIntentReceived.next(intent);
+    });
+  }
+  public switchFlightDataListener = () => {
+    this.hubConnection.on("SwitchToFlightData", () => {
+      this.router.navigateByUrl('/flight-data');
+    });
+  }
+  public fetchFlightDataListener = () => {
+    this.hubConnection.on("FetchFlightData", (rootObj) => {
+      console.log("123")
+      this.flightDataFetched.next(rootObj);
     });
   }
 }

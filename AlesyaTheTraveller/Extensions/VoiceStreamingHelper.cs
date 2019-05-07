@@ -64,13 +64,21 @@ namespace AlesyaTheTraveller.Extensions
         public async Task<object> Recognize(CancellationToken token)
         {
             var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
-            var intent = await proc.GetMessageIntentAsync("tickets from Minsk to Paris");
 
+            var intent = await proc.GetMessageIntentAsync("tickets from Minsk to Paris");
             var sessionParams = await proc.ParseIntent(intent);
+
+            // switch to flight-data component in angular
+            await _context.Clients.All.SendAsync("SwitchToFlightData");
+            
             var sessionId = await _flightData.CreateSession(sessionParams);
-            var results = _flightData.PollSessionResults(sessionId);
+            var results = await _flightData.PollSessionResults(sessionId);
+
+            await _context.Clients.All.SendAsync("FetchFlightData", results);
+            var a = 1;
 
             return null;
+
             var spec = new RecognitionSpec
             {
                 LanguageCode = "ru-RU",

@@ -19,6 +19,7 @@ export class AppComponent implements OnInit {
     this.signalRService.broadcastMessageRuEngListener();
     this.signalRService.broadcastVoiceMessageListener();
     this.signalRService.broadcastIntentListener();
+    this.signalRService.switchFlightDataListener();
 
     // subscribe to update UI with message on new messages from server
     this.signalRService.newMessageReceived
