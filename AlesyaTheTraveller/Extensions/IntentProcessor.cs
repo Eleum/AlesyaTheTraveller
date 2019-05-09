@@ -97,7 +97,7 @@ namespace AlesyaTheTraveller.Extensions
                 var destination = intent.Entities.First(x => x.Type == "Places.DestinationAddress");
                 if (!placeQualifiers.Any())
                 {
-                    queryParams.Add("destinationPlace", _cache.GetDestination(destination.Value).Code + "-sky");
+                    queryParams.Add("destinationPlace", _cache.GetLocation(destination.Value).Code + "-sky");
                 }
                 else
                 {
@@ -143,7 +143,7 @@ namespace AlesyaTheTraveller.Extensions
                             var query = intent.Entities
                                 .Where(x => x.StartIndex == item.Key + 2 && x.Type == "Places.DestinationAddress")
                                 .First().Value;
-                            var countryServiceCode = _cache.GetDestination(query).CountryCode;
+                            var countryServiceCode = _cache.GetLocation(query).CountryCode;
                             var country = _cache.GetCountryByCode(countryServiceCode);
 
                             var places = await _dataService.GetPlacesList(query);

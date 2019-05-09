@@ -12,7 +12,7 @@ namespace AlesyaTheTraveller.Services
 {
     public interface IFlightDataService
     {
-        Task<DestinationEntity[]> GetData(DestinationType type);
+        Task<GlobalPointEntity[]> GetData(PointType type);
         Task<PlaceEntity[]> GetPlacesList(string query);
         Task<string> CreateSession(Dictionary<string, string> requestParams);
         Task<RootObject> PollSessionResults(string sessionId);
@@ -59,10 +59,10 @@ namespace AlesyaTheTraveller.Services
             return null;
         }
 
-        public async Task<DestinationEntity[]> GetData(DestinationType type)
+        public async Task<GlobalPointEntity[]> GetData(PointType type)
         {
             var url = "http://api.travelpayouts.com/data/ru/" + 
-                (type == DestinationType.Country 
+                (type == PointType.Country 
                     ? "countries.json" 
                     : "cities.json");
 
@@ -75,7 +75,7 @@ namespace AlesyaTheTraveller.Services
             }
 
             var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<DestinationEntity[]>(json);
+            return JsonConvert.DeserializeObject<GlobalPointEntity[]>(json);
         }
 
         public async Task<PlaceEntity[]> GetPlacesList(string query)

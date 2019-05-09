@@ -10,38 +10,37 @@ namespace AlesyaTheTraveller.Services
 {
     public interface IFlightDataCacheService
     {
-        bool AddData(string key, DestinationEntity value);
-        DestinationEntity GetDestination(string stringLookUp);
-        DestinationEntity GetCountryByCode(string code);
+        bool AddData(string key, GlobalPointEntity value);
+        GlobalPointEntity GetLocation(string stringLookUp);
+        GlobalPointEntity GetCountryByCode(string code);
     }
 
     public class FlightDataCacheService : IFlightDataCacheService
     {
-        private readonly ConcurrentDictionary<string, DestinationEntity> _cache;
+        private readonly ConcurrentDictionary<string, GlobalPointEntity> _cache;
 
         public FlightDataCacheService()
         {
-            _cache = new ConcurrentDictionary<string, DestinationEntity>();
-            Debug.WriteLine("singleton initiallized");
+            _cache = new ConcurrentDictionary<string, GlobalPointEntity>();
         }
 
-        public DestinationEntity GetDestination(string stringLookUp)
+        public GlobalPointEntity GetLocation(string query)
         {
-            var a = _cache.Where(x => x.Value.NameTranslations.En.ToLower() == stringLookUp.ToLower());
+            var a = _cache.Where(x => x.Value.NameTranslations.En.ToLower() == query.ToLower());
             return _cache
-                .Where(x => x.Value.NameTranslations.En.ToLower() == stringLookUp.ToLower())
+                .Where(x => x.Value.NameTranslations.En.ToLower() == query.ToLower())
                 .FirstOrDefault()
                 .Value;
         }
 
-        public DestinationEntity GetCountryByCode(string code)
+        public GlobalPointEntity GetCountryByCode(string code)
         {
             return _cache.FirstOrDefault(x => x.Value.Code == code).Value;
         }
 
-        public bool AddData(string key, DestinationEntity value)
+        public bool AddData(string key, GlobalPointEntity value)
         {
-            return _cache.TryAdd<string, DestinationEntity>(key, value);
+            return _cache.TryAdd<string, GlobalPointEntity>(key, value);
         }
     }
 }

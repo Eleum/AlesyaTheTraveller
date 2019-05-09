@@ -23,10 +23,10 @@ namespace AlesyaTheTraveller
                 var cacheService = scope.ServiceProvider.GetRequiredService<Services.IFlightDataCacheService>();
                 var dataService = scope.ServiceProvider.GetRequiredService<Services.IFlightDataService>();
 
-                var tasks = new List<Task<Entities.DestinationEntity[]>>
+                var tasks = new List<Task<Entities.GlobalPointEntity[]>>
                 {
-                    dataService.GetData(Entities.DestinationType.Country),
-                    dataService.GetData(Entities.DestinationType.City)
+                    dataService.GetData(Entities.PointType.Country),
+                    dataService.GetData(Entities.PointType.City)
                 };
 
                 foreach (var task in tasks)

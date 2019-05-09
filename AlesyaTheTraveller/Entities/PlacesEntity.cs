@@ -3,40 +3,6 @@ using Newtonsoft.Json;
 
 namespace AlesyaTheTraveller.Entities
 {
-    #region Cache data
-
-    public enum DestinationType
-    {
-        Country,
-        City
-    }
-
-    public class DestinationEntity
-    {
-        [JsonProperty("code")]
-        public string Code { get; set; }
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("currency")]
-        public string Currency { get; set; }
-
-        [JsonProperty("name_translations")]
-        public NameTranslations NameTranslations { get; set; }
-
-        [JsonProperty("country_code")]
-        public string CountryCode { get; set; }
-    }
-
-    public class NameTranslations
-    {
-        [JsonProperty("en")]
-        public string En { get; set; }
-    }
-
-    #endregion
-
     #region Skyscanner places list
 
     public class Places
@@ -326,29 +292,6 @@ namespace AlesyaTheTraveller.Entities
 
         [JsonProperty("Currencies")]
         public Currency[] Currencies { get; set; }
-    }
-
-    #endregion
-
-    #region Client app flight
-
-    public class FlightData
-    {
-        public Uri CarrierImageUri { get; set; }
-
-        public DateTimeOffset DepartureTime { get; set; }
-
-        public DateTimeOffset ArrivalTime { get; set; }
-
-        public string Origin { get; set; }
-
-        public string Destination { get; set; }
-
-        public double Cost { get; set; }
-
-        public int Stops { get; set; }
-
-        public Uri TicketSellerUri { get; set; }
     }
 
     #endregion

@@ -50,18 +50,6 @@ namespace AlesyaTheTraveller.Entities
 
     public class Resolution
     {
-        //public class Value
-        //{
-        //    [JsonProperty("type")]
-        //    public string Type { get; set; }
-
-        //    [JsonProperty("start")]
-        //    public DateTime Start { get; set; }
-
-        //    [JsonProperty("end")]
-        //    public DateTime End { get; set; }
-        //}
-
         [JsonProperty("values")]
         public dynamic[] Values { get; set; }
     }
