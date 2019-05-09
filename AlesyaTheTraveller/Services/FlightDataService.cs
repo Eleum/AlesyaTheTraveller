@@ -107,7 +107,7 @@ namespace AlesyaTheTraveller.Services
             _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
 
             var uri = _config["RapidApi:Url"] + _config["RapidApi:FlightSearch"] + "uk2/" +
-                _config["RapidApi:Version"] + sessionId + "?pageIndex=1&pageSize=2";
+                _config["RapidApi:Version"] + sessionId + "?pageIndex=1";// &pageSize=2";
             var response = await _client.GetAsync(uri);
 
             if(!response.IsSuccessStatusCode)
@@ -136,7 +136,8 @@ namespace AlesyaTheTraveller.Services
                     DepartureTime = outboundInfo.Departure,
                     ArrivalTime = outboundInfo.Arrival,
                     Cost = itinerary.PricingOptions.First().Price,
-                    Stops = outboundInfo.Stops.Count()
+                    Stops = outboundInfo.Stops.Count(),
+                    TicketSellerUri = itinerary.PricingOptions.First().DeeplinkUrl
                 });
             }
 

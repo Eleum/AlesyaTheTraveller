@@ -123,6 +123,6 @@ export interface FlightData {
   Origin: string;
   Destination: string;
   Cost: number;
-  Type: string;
   Stops: number;
+  TicketSellerUri: string;
 }

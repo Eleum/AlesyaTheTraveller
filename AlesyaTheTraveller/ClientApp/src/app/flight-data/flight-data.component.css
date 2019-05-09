@@ -1,16 +1,41 @@
+.card-body {
+  padding: 0.5rem;
+}
+
+.card-body div {
+  vertical-align: middle;
+}
+
 .flight-data {
   font-family: "Open Sans", sans-serif;
   text-transform: uppercase;
 }
 
 .flight-data-inner {
-  display: flex;
-  justify-content: center;
+  position: relative;
+  display: inline-block;
+}
+
+.flight-data-inner a {
+  font-size: 12px;
+}
+
+.inner-left {
+  padding-right: 1rem;
+}
+
+.inner-right {
+  padding-left: 1rem;
+}
+
+.flight-data-info {
+  display: inline-block;
 }
 
 .flight-data-info img {
   display: inline-block;
   vertical-align: top;
+  margin-right: 0.25rem;
 }
 
 .flight-data-info-content {
@@ -22,13 +47,24 @@
   font-size: 0.75rem;
 }
 
-.margined-border:before {
+.margined-border {
+  padding: 0 1rem;
+  width: 28rem;
+}
+
+.margined-border:before, .margined-border:after {
   content: '';
   position: absolute;
   width: 1px;
-  top: 10%;
-  bottom: 10%;
-  border-left: 1px solid #ececec;
-  display: inline-block;
-  padding-right: 1.25rem;
+  height: calc(100% + 1rem);
+  top: -0.5rem;
+  background-color: #ececec;
+}
+
+.margined-border:before {
+  left: 0;
+}
+
+.margined-border:after {
+  right: 0;
 }

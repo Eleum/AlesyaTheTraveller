@@ -1,28 +1,40 @@
-<div class="margined-border">123</div>
-<!--<div class="container">
+<div class="container">
   <div class="row">
     <ul class="list-group list-unstyled flight-data">
       <li class="mb-3" *ngFor="let flight of flightData | async">
-        <div class="card">
+        <div class="card shadow p-3 mb-3 bg-white rounded">
           <div class="card-body">
-            <div class="flight-data-inner"><img src="{{flight.carrierImageUri}}" alt="Carrier image" /></div>
+            <div class="flight-data-inner inner-left">
+              <img src="{{flight.carrierImageUri}}" alt="Carrier image" />
+            </div>
             <div class="flight-data-inner margined-border">
-              <h6>от <strong>{{flight.cost}}</strong> / чел.</h6>
-              <h5>название полета</h5>
+              <h6>от <strong>{{flight.cost}} BYN</strong> / чел.</h6>
+              <p>{{flight.origin}} - {{flight.destination}}</p>
               <div class="flight-data-info-block">
-                <div class="flight-data-info">
-                  <img src="assets/images/flight-takeoff.png" alt="flight takeoff"/>
+                <div class="flight-data-info mr-2">
+                  <img src="assets/images/flight-takeoff.png" alt="flight takeoff" />
                   <div class="flight-data-info-content">
-                    <p>взлет</p>
+                    <p>вылет</p>
                     <p>{{flight.departureTime | date:'medium'}}</p>
                   </div>
                 </div>
+                <div class="flight-data-info">
+                  <img src="assets/images/flight_landing.png" alt="flight landing" />
+                  <div class="flight-data-info-content">
+                    <p>прибытие</p>
+                    <p>{{flight.arrivalTime | date:'medium'}}</p>
+                  </div>
+                </div>
               </div>
+              <a class="btn btn-outline-primary mt-2" href="#" role="button" onclick="return false;">заказать</a>
             </div>
-            <div class="flight-data-inner">{{flight.arrivalTime}}</div>
+            <div class="flight-data-inner inner-right text-center">
+              <h6>в одну строну</h6>
+              <h6>{{flight.stops}} пересадки</h6>
+            </div>
           </div>
         </div>
       </li>
     </ul>
   </div>
-</div>-->
+</div>

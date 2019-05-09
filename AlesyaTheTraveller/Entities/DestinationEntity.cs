@@ -346,10 +346,9 @@ namespace AlesyaTheTraveller.Entities
 
         public double Cost { get; set; }
 
-        // one way?
-        public string Type { get; set; }
-
         public int Stops { get; set; }
+
+        public Uri TicketSellerUri { get; set; }
     }
 
     #endregion
