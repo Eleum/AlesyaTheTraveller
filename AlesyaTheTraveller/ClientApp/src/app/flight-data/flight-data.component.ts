@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SignalRService } from '../services/signal-r.service';
+import { Observable, of } from 'rxjs';
 import { FlightData } from './flight-data.model';
 
 @Component({
@@ -8,18 +9,13 @@ import { FlightData } from './flight-data.model';
   styleUrls: ['./flight-data.component.css']
 })
 export class FlightDataComponent implements OnInit {
-  private rootObj: FlightData;
+  private flightData: Observable<FlightData>;
 
   constructor(private service: SignalRService) { }
 
   ngOnInit() {
     this.service.fetchFlightDataListener();
-
-    this.service.flightDataFetched
-      .subscribe((rootObj) => {
-        debugger;
-        this.rootObj = rootObj;
-        console.log(this.rootObj);
-      });
+    this.flightData = this.service.flightDataFetched.asObservable();
+    this.flightData.subscribe(data => console.log(data));
   }
 }

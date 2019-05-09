@@ -1,13 +1,28 @@
-<ul class="list-group">
-  <li *ngFor="let flight of rootObj.itineraries">
-    <table class="table table-bordered">
-      <tbody>
-        <tr>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-      </tbody>
-    </table>
-  </li>
-</ul>
+<div class="margined-border">123</div>
+<!--<div class="container">
+  <div class="row">
+    <ul class="list-group list-unstyled flight-data">
+      <li class="mb-3" *ngFor="let flight of flightData | async">
+        <div class="card">
+          <div class="card-body">
+            <div class="flight-data-inner"><img src="{{flight.carrierImageUri}}" alt="Carrier image" /></div>
+            <div class="flight-data-inner margined-border">
+              <h6>от <strong>{{flight.cost}}</strong> / чел.</h6>
+              <h5>название полета</h5>
+              <div class="flight-data-info-block">
+                <div class="flight-data-info">
+                  <img src="assets/images/flight-takeoff.png" alt="flight takeoff"/>
+                  <div class="flight-data-info-content">
+                    <p>взлет</p>
+                    <p>{{flight.departureTime | date:'medium'}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="flight-data-inner">{{flight.arrivalTime}}</div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>-->

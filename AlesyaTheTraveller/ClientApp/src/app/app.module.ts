@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, LOCALE_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
@@ -10,6 +10,11 @@ import { HomeComponent } from './home/home.component';
 import { CounterComponent } from './counter/counter.component';
 import { FetchDataComponent } from './fetch-data/fetch-data.component';
 import { FlightDataComponent } from './flight-data/flight-data.component';
+
+import { registerLocaleData } from '@angular/common';
+import localeRu from '@angular/common/locales/ru';
+
+registerLocaleData(localeRu);
 
 @NgModule({
   declarations: [
@@ -31,7 +36,9 @@ import { FlightDataComponent } from './flight-data/flight-data.component';
       { path: 'flight-data', component: FlightDataComponent }
     ])
   ],
-  providers: [],
+  providers: [
+    { provide: LOCALE_ID, useValue: "ru-RU" }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

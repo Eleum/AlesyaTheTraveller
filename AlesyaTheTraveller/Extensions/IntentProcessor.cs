@@ -151,7 +151,7 @@ namespace AlesyaTheTraveller.Extensions
                             if (places.Any())
                             {
                                 queryParams.Add(item.Value == PlaceQualifierDirection.From ? "originPlace" : "destinationPlace",
-                                    places.First(x => x.CountryName == country.Name).PlaceId);
+                                    places.FirstOrDefault(x => x.CountryName == country.Name)?.PlaceId ?? places.First().PlaceId);
                             }
                         }
                     }

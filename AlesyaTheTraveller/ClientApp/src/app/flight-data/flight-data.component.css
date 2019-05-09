@@ -1,0 +1,34 @@
+.flight-data {
+  font-family: "Open Sans", sans-serif;
+  text-transform: uppercase;
+}
+
+.flight-data-inner {
+  display: flex;
+  justify-content: center;
+}
+
+.flight-data-info img {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.flight-data-info-content {
+  display: inline-block;
+}
+
+.flight-data-info-content p {
+  margin-bottom: 0;
+  font-size: 0.75rem;
+}
+
+.margined-border:before {
+  content: '';
+  position: absolute;
+  width: 1px;
+  top: 10%;
+  bottom: 10%;
+  border-left: 1px solid #ececec;
+  display: inline-block;
+  padding-right: 1.25rem;
+}
