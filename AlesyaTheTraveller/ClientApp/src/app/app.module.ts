@@ -10,6 +10,7 @@ import { HomeComponent } from './home/home.component';
 import { CounterComponent } from './counter/counter.component';
 import { FetchDataComponent } from './fetch-data/fetch-data.component';
 import { FlightDataComponent } from './flight-data/flight-data.component';
+import { HotelDataComponent } from './hotel-data/hotel-data.component';
 
 import { registerLocaleData } from '@angular/common';
 import localeRu from '@angular/common/locales/ru';
@@ -23,7 +24,8 @@ registerLocaleData(localeRu);
     HomeComponent,
     CounterComponent,
     FetchDataComponent,
-    FlightDataComponent
+    FlightDataComponent,
+    HotelDataComponent
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -33,7 +35,8 @@ registerLocaleData(localeRu);
       { path: '', component: HomeComponent, pathMatch: 'full' },
       { path: 'counter', component: CounterComponent },
       { path: 'fetch-data', component: FetchDataComponent },
-      { path: 'flight-data', component: FlightDataComponent }
+      { path: 'flight-data', component: FlightDataComponent },
+      { path: 'hotel-data', component: HotelDataComponent }
     ])
   ],
   providers: [

@@ -143,6 +143,14 @@ namespace AlesyaTheTraveller.Extensions
                             var query = intent.Entities
                                 .Where(x => x.StartIndex == item.Key + 2 && x.Type == "Places.DestinationAddress")
                                 .First().Value;
+
+                            if(item.Value == PlaceQualifierDirection.To)
+                            {
+                                // will be used for hotels search and stuff
+                                // not a part of flight query
+                                queryParams["--destination"] = query;
+                            }
+
                             var countryServiceCode = _cache.GetLocation(query).CountryCode;
                             var country = _cache.GetCountryByCode(countryServiceCode);
 

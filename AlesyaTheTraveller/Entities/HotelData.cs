@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace AlesyaTheTraveller.Entities
 {
+    public class RootHotelObject
+    {
+        [JsonProperty("result")]
+        public HotelData[] HotelData { get; set; }
+    }
+
     public class HotelData
     {
         [JsonProperty("hotel_id")]
@@ -17,8 +23,14 @@ namespace AlesyaTheTraveller.Entities
         [JsonProperty("city_trans")]
         public string City { get; set; }
 
+        [JsonProperty("address")]
+        public string OriginAddress { get; set; }
+
         [JsonProperty("address_trans")]
         public string Address { get; set; }
+
+        [JsonProperty("hotel_name")]
+        public string OriginName { get; set; }
 
         [JsonProperty("hotel_name_trans")]
         public string Name { get; set; }
@@ -37,6 +49,9 @@ namespace AlesyaTheTraveller.Entities
 
         [JsonProperty("soldout")]
         public bool IsSoldOut { get; set; }
+
+        [JsonProperty("currencycode")]
+        public string Currency { get; set; }
 
         [JsonProperty("min_total_price")]
         public double TotalPrice { get; set; }

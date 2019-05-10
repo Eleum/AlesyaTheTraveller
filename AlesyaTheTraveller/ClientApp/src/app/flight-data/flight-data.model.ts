@@ -126,3 +126,20 @@ export interface FlightData {
   Stops: number;
   TicketSellerUri: string;
 }
+
+export interface HotelData {
+  Id: number;
+  Country: string;
+  City: string;
+  Address: string;
+  Name: string;
+  ImageUri: string;
+  Class: number;
+  IsFreeCancellation: boolean;
+  IsNoPrepayment: boolean;
+  IsSoldOut: boolean;
+  TotalPrice: number;
+  ReviewScore: number;
+  ReviewScoreWork: string;
+  ReviewsCount: number;
+}

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import * as signalR from '@aspnet/signalr';
-import { FlightData } from '../flight-data/flight-data.model';
+import { FlightData, HotelData } from '../flight-data/flight-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,11 +11,14 @@ export class SignalRService {
   private hubConnection: signalR.HubConnection
   private stream: MediaStream;
   private audioCtx: AudioContext;
+  private storedFlightData: FlightData;
+  private storedHotelData: HotelData;
 
   public newMessageReceived = new Subject<string>();
   public voiceMessageReceived = new Subject<string>();
   public newIntentReceived = new Subject<string>();
   public flightDataFetched = new Subject<FlightData>();
+  public hotelDataFetched = new Subject<HotelData>();
 
   covertFloat32ToUInt8(buffer: Float32Array) {
     let l = buffer.length;
@@ -78,6 +81,14 @@ export class SignalRService {
     }
   }
 
+  fetchData(type: number) {
+    if (type == 0) {
+      this.flightDataFetched.next(this.storedFlightData);
+    } else {
+      this.hotelDataFetched.next(this.storedHotelData);
+    }
+  }
+
   public stopVoiceStreamListener = () => {
     this.hubConnection.on('InvokeStopVoiceStream', () => {
       this.stopVoiceStream();
@@ -103,9 +114,15 @@ export class SignalRService {
       this.router.navigateByUrl('/flight-data');
     });
   }
-  public fetchFlightDataListener = () => {
-    this.hubConnection.on("FetchFlightData", (rootObj) => {
-      this.flightDataFetched.next(rootObj);
+  public fetchDataListener = () => {
+    this.hubConnection.on("FetchData", (rootObj, type) => {
+      if (type == 0) {
+        this.storedFlightData = rootObj as FlightData;
+        this.fetchData(0);
+      } else {
+        this.storedHotelData = rootObj as HotelData;
+        this.fetchData(1);
+      }
     });
   }
 }

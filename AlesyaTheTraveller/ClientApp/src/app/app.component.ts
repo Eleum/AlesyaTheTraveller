@@ -11,30 +11,31 @@ export class AppComponent implements OnInit {
   public message = "";
   public intent = "";
 
-  constructor(public signalRService: SignalRService, private http: HttpClient) { }
+  constructor(public service: SignalRService, private http: HttpClient) { }
 
   ngOnInit() {
-    this.signalRService.startConnection();
-    this.signalRService.stopVoiceStreamListener();
-    this.signalRService.broadcastMessageRuEngListener();
-    this.signalRService.broadcastVoiceMessageListener();
-    this.signalRService.broadcastIntentListener();
-    this.signalRService.switchFlightDataListener();
+    this.service.startConnection();
+    this.service.stopVoiceStreamListener();
+    this.service.broadcastMessageRuEngListener();
+    this.service.broadcastVoiceMessageListener();
+    this.service.broadcastIntentListener();
+    this.service.switchFlightDataListener();
+    this.service.fetchDataListener();
 
     // subscribe to update UI with message on new messages from server
-    this.signalRService.newMessageReceived
+    this.service.newMessageReceived
       .subscribe((message) => {
         this.message = message;
       });
 
     // subscribe to update UI with intent on new intents from server
-    this.signalRService.newIntentReceived
+    this.service.newIntentReceived
       .subscribe((intent) => {
         this.intent = intent;
       });
 
     // subscribe to say new messages
-    this.signalRService.voiceMessageReceived
+    this.service.voiceMessageReceived
       .subscribe((message) => {
         this.sayVoiceMessageHandler(message);
       });
@@ -42,11 +43,11 @@ export class AppComponent implements OnInit {
 
   startRecording() {
     this.message = "";
-    this.signalRService.startVoiceStream();
+    this.service.startVoiceStream();
   }
 
   stopRecording() {
-    this.signalRService.stopVoiceStream();
+    this.service.stopVoiceStream();
   }
 
   private sayVoiceMessageHandler(message: string) {

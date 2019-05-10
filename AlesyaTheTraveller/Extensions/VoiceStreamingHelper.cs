@@ -68,15 +68,13 @@ namespace AlesyaTheTraveller.Extensions
             var intent = await proc.GetMessageIntentAsync("tickets from Minsk to Paris");
             var sessionParams = await proc.ParseIntent(intent);
 
-            // switch to flight-data component in angular
+            // switch to flight-data component in client app
             await _context.Clients.All.SendAsync("SwitchToFlightData");
-            
-            var sessionId = await _flightData.CreateSession(sessionParams);
-            var flights = await _flightData.PollSessionResults(sessionId)
-                .ContinueWith((x) => _flightData.FormFlightData(x.Result), 
-                TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
 
-            await _context.Clients.All.SendAsync("FetchFlightData", flights);
+            var hotels = RunHotelSearch(sessionParams["--destination"]);
+            var flights = RunFlightSearch(sessionParams);
+
+            await Task.WhenAll(flights, hotels);
 
             return null;
 
@@ -241,6 +239,41 @@ namespace AlesyaTheTraveller.Extensions
             };
 
             return await translator.TranslateText(message, "ru-en");
+        }
+
+        private enum FetchType
+        {
+            Flight,
+            Hotel
+        }
+
+        private async Task RunFlightSearch(Dictionary<string, string> param)
+        {
+            param.Remove("--destination");
+
+            var sessionId = await _flightData.CreateSession(param);
+            var flights = await _flightData.PollSessionResults(sessionId)
+                .ContinueWith((x) => _flightData.FormFlightData(x.Result),
+                TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+
+            await _context.Clients.All.SendAsync("FetchData", flights, FetchType.Flight);
+        }
+
+        private async Task RunHotelSearch(string destination)
+        {
+            var locations = await _flightData.GetLocations(destination);
+
+            // negative values are ok
+            var destinationId = locations.FirstOrDefault(x => x.DestinationType == "city")?.Id;
+
+            HotelData[] hotelData = null;
+
+            if (destinationId != null)
+            {
+                hotelData = await _flightData.GetHotelData(destinationId.Value);
+            }
+
+            await _context.Clients.All.SendAsync("FetchData", hotelData, FetchType.Hotel);
         }
     }
 }

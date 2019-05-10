@@ -17,6 +17,8 @@ namespace AlesyaTheTraveller.Services
         Task<string> CreateSession(Dictionary<string, string> requestParams);
         Task<RootObject> PollSessionResults(string sessionId);
         List<FlightData> FormFlightData(RootObject root);
+        Task<LocationEntity[]> GetLocations(string query);
+        Task<HotelData[]> GetHotelData(int destinationId);
         // get tickets
     }
     
@@ -41,7 +43,7 @@ namespace AlesyaTheTraveller.Services
                 content.Headers.Clear();
                 content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-                var uri = _config["RapidApi:Url"] + _config["RapidApi:FlightSearch"] + _config["RapidApi:Version"];
+                var uri = _config["RapidApi:FlightUrl"] + _config["RapidApi:FlightSearch"] + _config["RapidApi:Version"];
                 var response = await _client.PostAsync(uri, content);
 
                 if (response.IsSuccessStatusCode)
@@ -84,11 +86,8 @@ namespace AlesyaTheTraveller.Services
             _client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:Host"]);
             _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
 
-            var queryParams = HttpUtility.ParseQueryString(string.Empty);
-            queryParams["query"] = query;
-
-            var uri = _config["RapidApi:Url"] + _config["RapidApi:PlaceSearch"] + _config["RapidApi:Version"] + 
-                _config["RapidApi:LocaleSettings"] + "?" + queryParams;
+            var uri = _config["RapidApi:FlightUrl"] + _config["RapidApi:PlaceSearch"] + _config["RapidApi:Version"] + 
+                _config["RapidApi:LocaleSettings"] + "?query=" + query;
             var response = await _client.GetAsync(uri);
 
             if(!response.IsSuccessStatusCode)
@@ -106,7 +105,7 @@ namespace AlesyaTheTraveller.Services
             _client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:Host"]);
             _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
 
-            var uri = _config["RapidApi:Url"] + _config["RapidApi:FlightSearch"] + "uk2/" +
+            var uri = _config["RapidApi:FlightUrl"] + _config["RapidApi:FlightSearch"] + "uk2/" +
                 _config["RapidApi:Version"] + sessionId + "?pageIndex=1";// &pageSize=2";
             var response = await _client.GetAsync(uri);
 
@@ -142,6 +141,58 @@ namespace AlesyaTheTraveller.Services
             }
 
             return itineraries;
+        }
+
+        public async Task<LocationEntity[]> GetLocations(string query)
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:HotelsHost"]);
+            client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
+
+            var uri = _config["RapidApi:HotelsUrl"] + _config["RapidApi:Locations"] + "?languagecode=ru&text=" + query.ToLower();
+            var response = await client.GetAsync(uri);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                //errorka
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<LocationEntity[]>(json);
+        }
+
+        public async Task<HotelData[]> GetHotelData(int destinationId)
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:HotelsHost"]);
+            client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
+
+            var queryParams = HttpUtility.ParseQueryString(string.Empty);
+
+            queryParams["price_filter_currencycode"] = "BYN";
+            queryParams["travel_purpose"] = "leisure";
+            queryParams["search_id"] = "none";
+            queryParams["order_by"] = "popularity";
+            queryParams["languagecode"] = "ru";
+            queryParams["search_type"] = "city";
+            queryParams["offset"] = "0";
+            queryParams["dest_ids"] = destinationId.ToString();
+            queryParams["guest_qty"] = "1";
+            queryParams["offset"] = "0";
+            queryParams["arrival_date"] = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+            queryParams["departure_date"] = DateTime.Now.AddDays(8).ToString("yyyy-MM-dd");
+            queryParams["room_qty"] = "1";
+
+            var uri = _config["RapidApi:HotelsUrl"] + _config["RapidApi:List"] + "?" + queryParams;
+            var response = await client.GetAsync(uri);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                //errorka
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<RootHotelObject>(json).HotelData;
         }
     }
 }

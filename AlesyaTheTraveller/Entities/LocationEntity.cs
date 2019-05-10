@@ -45,6 +45,6 @@ namespace AlesyaTheTraveller.Entities
         public string DestinationType { get; set; }
 
         [JsonProperty("city_name")]
-        public int Name { get; set; }
+        public string Name { get; set; }
     }
 }
