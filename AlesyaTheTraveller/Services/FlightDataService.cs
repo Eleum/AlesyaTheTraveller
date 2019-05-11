@@ -121,6 +121,9 @@ namespace AlesyaTheTraveller.Services
 
         public List<FlightData> FormFlightData(RootObject root)
         {
+            if (root.Itineraries == null)
+                return null;
+
             var itineraries = new List<FlightData>();
 
             foreach(var itinerary in root.Itineraries)
