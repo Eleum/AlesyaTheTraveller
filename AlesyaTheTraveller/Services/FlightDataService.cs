@@ -18,7 +18,7 @@ namespace AlesyaTheTraveller.Services
         Task<RootObject> PollSessionResults(string sessionId);
         List<FlightData> FormFlightData(RootObject root);
         Task<LocationEntity[]> GetLocations(string query);
-        Task<HotelData[]> GetHotelData(int destinationId);
+        Task<HotelData[]> GetHotelData(int destinationId, DateTime arrivalDate);
         // get tickets
     }
     
@@ -164,7 +164,7 @@ namespace AlesyaTheTraveller.Services
             return JsonConvert.DeserializeObject<LocationEntity[]>(json);
         }
 
-        public async Task<HotelData[]> GetHotelData(int destinationId)
+        public async Task<HotelData[]> GetHotelData(int destinationId, DateTime arrivalDate)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:HotelsHost"]);
@@ -182,8 +182,8 @@ namespace AlesyaTheTraveller.Services
             queryParams["dest_ids"] = destinationId.ToString();
             queryParams["guest_qty"] = "1";
             queryParams["offset"] = "0";
-            queryParams["arrival_date"] = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
-            queryParams["departure_date"] = DateTime.Now.AddDays(8).ToString("yyyy-MM-dd");
+            queryParams["arrival_date"] = arrivalDate.ToString("yyyy-MM-dd");
+            queryParams["departure_date"] = arrivalDate.AddDays(5).ToString("yyyy-MM-dd");
             queryParams["room_qty"] = "1";
 
             var uri = _config["RapidApi:HotelsUrl"] + _config["RapidApi:List"] + "?" + queryParams;

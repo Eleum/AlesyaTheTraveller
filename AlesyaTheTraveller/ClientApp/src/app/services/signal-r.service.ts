@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import * as signalR from '@aspnet/signalr';
-import { FlightData, HotelData } from '../flight-data/flight-data.model';
+import { FlightData } from '../flight-data/flight-data.model';
+import { HotelData } from '../hotel-data/hotel-data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -110,16 +111,25 @@ export class SignalRService {
       this.newIntentReceived.next(intent);
     });
   }
-  public switchFlightDataListener = () => {
-    this.hubConnection.on("SwitchToFlightData", () => {
-      this.router.navigateByUrl('/flight-data');
+  public switchItemListener = () => {
+    this.hubConnection.on("SwitchToItem", (data) => {
+      let item = data.toLowerCase();
+      if (item.startsWith("flight") || item.startsWith("ticket")) {
+        this.router.navigateByUrl('/flight-data');
+      } else if (item.startsWith("hotel")) {
+        this.router.navigateByUrl('/hotel-data');
+      } else if (item.startsWith("main")) {
+        this.router.navigateByUrl('/');
+      }
     });
   }
   public fetchDataListener = () => {
     this.hubConnection.on("FetchData", (rootObj, type) => {
       if (type == 0) {
-        if (rootObj == null)
+        if (rootObj == null || rootObj.length == 0) {
+          this.voiceMessageReceived.next("К сожалению, не удалось получить рейсы по заданному направлению. Повторите попытку позже.");
           return;
+        }
         this.storedFlightData = rootObj.map(x => {
           return <FlightData>
             {
@@ -134,9 +144,9 @@ export class SignalRService {
             };
         });
         this.fetchData(0);
+        this.voiceMessageReceived.next("Вот, какие рейсы удалось получить");
       } else {
-        console.log("PREdata is " + rootObj);
-        if (rootObj == null)
+        if (rootObj == null || rootObj.length == 0)
           return;
         this.storedHotelData = rootObj.map(x => {
           return <HotelData>
@@ -160,7 +170,6 @@ export class SignalRService {
               ReviewsCount: x.review_nr
             };
         });
-        console.log("data is " + this.storedHotelData);
         this.fetchData(1);
       }
     });

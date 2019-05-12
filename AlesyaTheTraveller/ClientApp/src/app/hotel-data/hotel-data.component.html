@@ -7,7 +7,7 @@
             <div class="inline hotel-data-img mr-2 full-height">
               <img src="{{hotel.ImageUri}}" alt="Hotel image" />
             </div>
-            <div class="hotel-data-info inline">
+            <div class="hotel-data-info p-2 inline">
               <h5 class="mr-1 inline">{{hotel.Name || hotel.OriginName}}</h5>
               <i class="fa fa-star inline" *ngFor="let i of hotel.Class | transform" data-toggle="tooltip" data-placement="top" title="{{hotel.Class}}-звездочный отель"></i>
               <div class="review-box">
@@ -18,11 +18,12 @@
                 </div>
               </div>
               <p>{{hotel.Country}}, {{hotel.City}}, {{hotel.Address || hotel.OriginAddress}}</p>
+              <p class="text-green text-uppercase mr-1 inline" *ngIf="hotel.IsNoPrepayment" data-toggle="tooltip" data-placement="top" title="Предоплата не требуется - вы платите во время проживания"><i class="fa fa-check"></i> предоплата не требуется</p>
+              <p class="text-green text-uppercase inline" *ngIf="hotel.IsFreeCancellation" data-toggle="tooltip" data-placement="top" title="при отмене бронирования"><i class="fa fa-check"></i> полный возврат средств</p>
             </div>
             <div class="hotel-prize-section bg-primary inline full-height">
               <div class="hotel-prize-section-inner">
-                <!-- добавить валюту -->
-                <p class="text-uppercase">от {{hotel.TotalPrice}}</p>
+                <p class="text-white text-uppercase">от {{hotel.TotalPrice}} {{hotel.CurrencyCode}}</p>
                 <a class="btn btn-outline-primary inline" href="#" role="button" onclick="return false;">Инфо</a>
               </div>
             </div>

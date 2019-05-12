@@ -62,21 +62,6 @@ namespace AlesyaTheTraveller.Extensions
 
         public async Task<object> Recognize(CancellationToken token)
         {
-            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
-
-            var intent = await proc.GetMessageIntentAsync("tickets from Minsk to Paris");
-            var sessionParams = await proc.ParseIntent(intent);
-
-            // switch to flight-data component in client app
-            await _context.Clients.All.SendAsync("SwitchToFlightData");
-
-            var hotels = RunHotelSearch(sessionParams["--destination"]);
-            var flights = RunFlightSearch(sessionParams);
-
-            await Task.WhenAll(flights, hotels);
-
-            return null;
-
             var spec = new RecognitionSpec
             {
                 LanguageCode = "ru-RU",
@@ -179,21 +164,23 @@ namespace AlesyaTheTraveller.Extensions
 
                             var alternative = chunk.Alternatives.First();
                             var englishAlternative = await TranslateMessageAsync(alternative.Text);
+                            await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}");
 
-                            //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache);
-                            //var intent = await proc.GetMessageIntentAsync(englishAlternative);
+                            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
 
-                            //var sessionParams = proc.ParseIntent(intent);
-                            //var a = await _flightData.CreateSession(sessionParams);
+                            var intent = await proc.GetMessageIntentAsync(englishAlternative); //("tickets from Minsk to Paris");
+                            var intentParams = await proc.ParseIntent(intent);
 
-                            var tasks = new List<Task>
-                            {
-                                _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}"),
-                                _context.Clients.All.SendAsync("BroadcastIntent", $"{intent}"),
-                                _context.Clients.All.SendAsync("SayVoiceMessage", $"{alternative.Text}"),
-                            };
+                            await ParseIntentParams(intentParams);
 
-                            await Task.WhenAll(tasks);
+                            //var tasks = new List<Task>
+                            //{
+                            //    _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}"),
+                            //    _context.Clients.All.SendAsync("BroadcastIntent", $"{intent}"),
+                            //    _context.Clients.All.SendAsync("SayVoiceMessage", $"{alternative.Text}"),
+                            //};
+
+                            //await Task.WhenAll(tasks);
 
                             break;
                         }
@@ -201,7 +188,7 @@ namespace AlesyaTheTraveller.Extensions
                 }
                 catch(Exception e)
                 {
-                    System.Diagnostics.Debug.WriteLine("EXCEPTION");
+                    Debug.WriteLine("EXCEPTION");
                 }
             };
 
@@ -240,6 +227,27 @@ namespace AlesyaTheTraveller.Extensions
             return await translator.TranslateText(message, "ru-en");
         }
 
+        private async Task ParseIntentParams(Dictionary<string, string> intentParams)
+        {
+            var type = intentParams.GetAndRemove("--type");
+
+            switch(type)
+            {
+                case "Interaction":
+                    await _context.Clients.All.SendAsync("SwitchToItem", intentParams["item"]);
+                    break;
+                case "Travelling":
+                    // switch to flight-data component in client app
+                    await _context.Clients.All.SendAsync("SwitchToItem", "flight");
+
+                    var hotels = RunHotelSearch(intentParams["--destination"], intentParams["outboundDate"]);
+                    var flights = RunFlightSearch(intentParams);
+
+                    await Task.WhenAll(flights, hotels);
+                    break;
+            }
+        }
+
         private enum FetchType
         {
             Flight,
@@ -250,15 +258,24 @@ namespace AlesyaTheTraveller.Extensions
         {
             param.Remove("--destination");
 
-            var sessionId = await _flightData.CreateSession(param);
-            var flights = await _flightData.PollSessionResults(sessionId)
-                .ContinueWith((x) => _flightData.FormFlightData(x.Result),
-                TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+            List<FlightData> flights = null;
+
+            try
+            {
+                var sessionId = await _flightData.CreateSession(param);
+                flights = await _flightData.PollSessionResults(sessionId)
+                    .ContinueWith((x) => _flightData.FormFlightData(x.Result),
+                    TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+            }
+            catch(Exception e)
+            {
+
+            }
 
             await _context.Clients.All.SendAsync("FetchData", flights, FetchType.Flight);
         }
 
-        private async Task RunHotelSearch(string destination)
+        private async Task RunHotelSearch(string destination, string outboundDate)
         {
             var locations = await _flightData.GetLocations(destination);
 
@@ -271,7 +288,8 @@ namespace AlesyaTheTraveller.Extensions
             {
                 if (destinationId != null)
                 {
-                    hotelData = await _flightData.GetHotelData(destinationId.Value);
+                    hotelData = await _flightData.GetHotelData(destinationId.Value, 
+                        DateTime.ParseExact(outboundDate, "yyyy-MM-dd", null));
                 }
                 else
                 {

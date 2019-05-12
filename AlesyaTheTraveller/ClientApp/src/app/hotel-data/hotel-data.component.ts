@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { SignalRService } from '../services/signal-r.service';
-import { HotelData } from '../flight-data/flight-data.model';
+import { HotelData } from './hotel-data.model';
 
 @Component({
   selector: 'app-hotel-data',

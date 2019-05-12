@@ -19,7 +19,7 @@ export class AppComponent implements OnInit {
     this.service.broadcastMessageRuEngListener();
     this.service.broadcastVoiceMessageListener();
     this.service.broadcastIntentListener();
-    this.service.switchFlightDataListener();
+    this.service.switchItemListener();
     this.service.fetchDataListener();
 
     // subscribe to update UI with message on new messages from server
@@ -52,7 +52,7 @@ export class AppComponent implements OnInit {
 
   private sayVoiceMessageHandler(message: string) {
     var formData = new FormData();
-    formData.append('message', `лошара, ты сказал ${message}`);
+    formData.append('message', message);
     this.http.post('https://localhost:44389/api/VoiceStreaming', formData)
       .subscribe((response: any) => {
         let byteCharacters = atob(response.response);
