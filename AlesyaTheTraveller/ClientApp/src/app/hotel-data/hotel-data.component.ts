@@ -9,7 +9,7 @@ import { HotelData } from '../flight-data/flight-data.model';
   styleUrls: ['./hotel-data.component.css']
 })
 export class HotelDataComponent implements OnInit, AfterViewInit, OnDestroy {
-  private hotelData: Observable<HotelData>;
+  private hotelData: Observable<HotelData[]>;
   private subscription: Subscription;
 
   constructor(private service: SignalRService) { }
@@ -20,10 +20,16 @@ export class HotelDataComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.service.fetchData(1);
+    setTimeout(() => {
+      this.service.fetchData(1);
+    });
   }
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+  }
+
+  getHotelClass(hotel: HotelData) {
+    return new Array(hotel.Class);
   }
 }

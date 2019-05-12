@@ -195,7 +195,18 @@ namespace AlesyaTheTraveller.Services
             }
 
             var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<RootHotelObject>(json).HotelData;
+            return JsonConvert.DeserializeObject<RootHotelObject>(json)
+                .HotelData
+                .Select(x => { UpdateMainPhoto(x); return x; })
+                .ToArray();
+        }
+
+        private void UpdateMainPhoto(HotelData data)
+        {
+            // make https and change size
+            data.Image = new Uri(data.Image.ToString()
+                .Replace("http", "https")
+                .Replace("square60", "max300"));
         }
     }
 }

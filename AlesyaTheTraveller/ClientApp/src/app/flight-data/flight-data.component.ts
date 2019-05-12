@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, AfterContentInit, AfterViewChecked } from '@angular/core';
 import { SignalRService } from '../services/signal-r.service';
 import { Observable, Subscription } from 'rxjs';
-import { tap } from 'rxjs/operators';
 import { FlightData } from './flight-data.model';
 
 @Component({
@@ -10,12 +9,10 @@ import { FlightData } from './flight-data.model';
   styleUrls: ['./flight-data.component.css']
 })
 export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
-  private flightData: Observable<FlightData>;
+  private flightData: Observable<FlightData[]>;
   private subscription: Subscription;
 
-  constructor(private service: SignalRService, private cd: ChangeDetectorRef) {
-    
-  }
+  constructor(private service: SignalRService, private cd: ChangeDetectorRef) { }
 
   ngOnInit() {
     this.flightData = this.service.flightDataFetched.asObservable();
@@ -28,10 +25,6 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => {
       this.service.fetchData(0);
     });
-    //this.flightData
-    //  .pipe(
-    //    tap(() => this.service.fetchData(0))
-    //  ).subscribe();
   }
 
   ngOnDestroy() {

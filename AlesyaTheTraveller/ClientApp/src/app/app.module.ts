@@ -11,6 +11,7 @@ import { CounterComponent } from './counter/counter.component';
 import { FetchDataComponent } from './fetch-data/fetch-data.component';
 import { FlightDataComponent } from './flight-data/flight-data.component';
 import { HotelDataComponent } from './hotel-data/hotel-data.component';
+import { NumberToArrayPipe } from './custom-pipes';
 
 import { registerLocaleData } from '@angular/common';
 import localeRu from '@angular/common/locales/ru';
@@ -25,7 +26,8 @@ registerLocaleData(localeRu);
     CounterComponent,
     FetchDataComponent,
     FlightDataComponent,
-    HotelDataComponent
+    HotelDataComponent,
+    NumberToArrayPipe
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),

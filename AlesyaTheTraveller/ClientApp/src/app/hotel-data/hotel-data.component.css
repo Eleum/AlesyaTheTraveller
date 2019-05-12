@@ -1,0 +1,67 @@
+.card {
+  width: 55rem;
+}
+
+.inline {
+  display: inline-block;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.hotel-data-img {
+  width: 10rem;
+  float: left;
+}
+
+.hotel-data-img img {
+  height: 100%;
+  width: 100%;
+}
+
+.hotel-data-info {
+  width: 60%;
+}
+
+.score-badge {
+  background: #003580;
+  border-radius: 6px 6px 0 6px;
+  color: white;
+  height: 1.6rem;
+  width: 1.6rem;
+  text-align: center;
+}
+
+.score-text {
+  color: #003580;
+}
+
+.fa-star {
+  color: #feba02;
+}
+
+.hotel-prize-section {
+  float: right;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15%;
+}
+
+.btn-outline-primary {
+  background-color: white !important;
+}
+
+.btn-outline-primary:hover {
+  border-color: white;
+  background-color: transparent !important;
+}
+
+.hotel-prize-section-inner {
+  text-align: center;
+}
+
+.hotel-prize-section-inner p {
+  text-align: center;
+}

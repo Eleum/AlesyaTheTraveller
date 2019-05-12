@@ -11,14 +11,14 @@ export class SignalRService {
   private hubConnection: signalR.HubConnection
   private stream: MediaStream;
   private audioCtx: AudioContext;
-  private storedFlightData: FlightData;
-  private storedHotelData: HotelData;
+  private storedFlightData: FlightData[];
+  private storedHotelData: HotelData[];
 
   public newMessageReceived = new Subject<string>();
   public voiceMessageReceived = new Subject<string>();
   public newIntentReceived = new Subject<string>();
-  public flightDataFetched = new Subject<FlightData>();
-  public hotelDataFetched = new Subject<HotelData>();
+  public flightDataFetched = new Subject<FlightData[]>();
+  public hotelDataFetched = new Subject<HotelData[]>();
 
   covertFloat32ToUInt8(buffer: Float32Array) {
     let l = buffer.length;
@@ -82,6 +82,7 @@ export class SignalRService {
   }
 
   fetchData(type: number) {
+    console.log("fetch with type" + type);
     if (type == 0) {
       this.flightDataFetched.next(this.storedFlightData);
     } else {
@@ -117,10 +118,49 @@ export class SignalRService {
   public fetchDataListener = () => {
     this.hubConnection.on("FetchData", (rootObj, type) => {
       if (type == 0) {
-        this.storedFlightData = rootObj as FlightData;
+        if (rootObj == null)
+          return;
+        this.storedFlightData = rootObj.map(x => {
+          return <FlightData>
+            {
+              ImageUri: x.carrierImageUri,
+              Departure: x.departureTime,
+              Arrival: x.arrivalTime,
+              Origin: x.origin,
+              Destination: x.destination,
+              Cost: x.cost,
+              Stops: x.stops,
+              TicketSellerUri: x.ticketSellerUri
+            };
+        });
         this.fetchData(0);
       } else {
-        this.storedHotelData = rootObj as HotelData;
+        console.log("PREdata is " + rootObj);
+        if (rootObj == null)
+          return;
+        this.storedHotelData = rootObj.map(x => {
+          return <HotelData>
+            {
+              Id: x.hotel_id,
+              Country: x.country_trans,
+              City: x.city_trans,
+              OriginAddress: x.address,
+              Address: x.address_trans,
+              OriginName: x.hotel_name,
+              Name: x.hotel_name_trans,
+              ImageUri: x.main_photo_url,
+              Class: x.class,
+              IsFreeCancellation: x.is_free_cancellable,
+              IsNoPrepayment: x.is_no_prepayment_block,
+              IsSoldOut: x.soldout,
+              CurrencyCode: x.currencycode,
+              TotalPrice: x.min_total_price,
+              ReviewScore: x.review_score,
+              ReviewScoreWord: x.review_score_word,
+              ReviewsCount: x.review_nr
+            };
+        });
+        console.log("data is " + this.storedHotelData);
         this.fetchData(1);
       }
     });

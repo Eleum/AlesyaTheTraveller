@@ -1,10 +1,31 @@
 <div class="container">
   <div class="row">
     <ul class="list-group list-unstyled">
-      <li class="mb-3" *ngFor="let hotel of hotelData | async">
-        <div class="card shadow p-3 mb-3 bg-white rounded">
-          <div class="card-body">
-
+      <li class="mb-3 full-height" *ngFor="let hotel of hotelData | async">
+        <div class="card mb-3 shadow bg-white rounded full-height">
+          <div class="card-body p-0">
+            <div class="inline hotel-data-img mr-2 full-height">
+              <img src="{{hotel.ImageUri}}" alt="Hotel image" />
+            </div>
+            <div class="hotel-data-info inline">
+              <h5 class="mr-1 inline">{{hotel.Name || hotel.OriginName}}</h5>
+              <i class="fa fa-star inline" *ngFor="let i of hotel.Class | transform" data-toggle="tooltip" data-placement="top" title="{{hotel.Class}}-звездочный отель"></i>
+              <div class="review-box">
+                <div class="score-badge mr-1 inline">{{hotel.ReviewScore}}</div>
+                <div class="inline">
+                  <p class="score-text mb-0 mr-1 inline">{{hotel.ReviewScoreWord}}</p>
+                  <p class="text-muted mb-1 inline">{{hotel.ReviewsCount}} оценок</p>
+                </div>
+              </div>
+              <p>{{hotel.Country}}, {{hotel.City}}, {{hotel.Address || hotel.OriginAddress}}</p>
+            </div>
+            <div class="hotel-prize-section bg-primary inline full-height">
+              <div class="hotel-prize-section-inner">
+                <!-- добавить валюту -->
+                <p class="text-uppercase">от {{hotel.TotalPrice}}</p>
+                <a class="btn btn-outline-primary inline" href="#" role="button" onclick="return false;">Инфо</a>
+              </div>
+            </div>
           </div>
         </div>
       </li>

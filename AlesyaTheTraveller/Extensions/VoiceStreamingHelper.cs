@@ -7,11 +7,10 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using Yandex.Cloud.Ai.Stt.V2;
 using YandexTranslateCSharpSdk;
 
@@ -268,9 +267,20 @@ namespace AlesyaTheTraveller.Extensions
 
             HotelData[] hotelData = null;
 
-            if (destinationId != null)
+            try
             {
-                hotelData = await _flightData.GetHotelData(destinationId.Value);
+                if (destinationId != null)
+                {
+                    hotelData = await _flightData.GetHotelData(destinationId.Value);
+                }
+                else
+                {
+                    Debug.WriteLine("NULL");
+                }
+            }
+            catch(Exception e)
+            {
+
             }
 
             await _context.Clients.All.SendAsync("FetchData", hotelData, FetchType.Hotel);

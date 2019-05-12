@@ -39,7 +39,7 @@ namespace AlesyaTheTraveller.Entities
         public Uri Image { get; set; }
 
         [JsonProperty("class")]
-        public int Class { get; set; }
+        public double Class { get; set; }
 
         [JsonProperty("is_free_cancellable")]
         public bool IsFreeCancellation { get; set; }
@@ -64,5 +64,8 @@ namespace AlesyaTheTraveller.Entities
 
         [JsonProperty("review_nr")]
         public int ReviewsCount { get; set; }
+
+        [JsonProperty("main_photo_id")]
+        public int MainPhotoId { get; set; }
     }
 }
