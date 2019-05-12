@@ -171,7 +171,7 @@ namespace AlesyaTheTraveller.Extensions
                             var intent = await proc.GetMessageIntentAsync(englishAlternative); //("tickets from Minsk to Paris");
                             var intentParams = await proc.ParseIntent(intent);
 
-                            await ParseIntentParams(intentParams);
+                            await ProcessIntentParams(intentParams);
 
                             //var tasks = new List<Task>
                             //{
@@ -227,7 +227,7 @@ namespace AlesyaTheTraveller.Extensions
             return await translator.TranslateText(message, "ru-en");
         }
 
-        private async Task ParseIntentParams(Dictionary<string, string> intentParams)
+        private async Task ProcessIntentParams(Dictionary<string, string> intentParams)
         {
             var type = intentParams.GetAndRemove("--type");
 

@@ -82,20 +82,33 @@ namespace AlesyaTheTraveller.Extensions
                 if (outbountDate == null)
                     return dateToReturn;
 
-                var parseDateSuccess = DateTime.TryParseExact(outbountDate.Value, "MMMM dd", 
-                    null, System.Globalization.DateTimeStyles.None, 
-                    out var parsedDate);
+                // get possible dates for user date input
+                var dates = new[] 
+                {
+                    DateTime.ParseExact(outbountDate.Resolution.DataValues.First().Value, "yyyy-MM-dd", null),
+                    DateTime.ParseExact(outbountDate.Resolution.DataValues.First().Value, "yyyy-MM-dd", null)
+                };
 
-                // another try with date first
-                parseDateSuccess = DateTime.TryParseExact(outbountDate.Value, "dd MMMM",
-                    null, System.Globalization.DateTimeStyles.None,
-                    out parsedDate);
-
-                return !parseDateSuccess ? dateToReturn : parsedDate.ToString("yyyy-MM-dd");
+                // return first value greater than DateTime.Now
+                // if there's no, return tomorrow
+                return dates[0] < DateTime.Now
+                    ? dates[1] < DateTime.Now
+                        ? dateToReturn
+                        : dates[1].ToString("yyyy-MM-dd")
+                    : dates[0].ToString("yyyy-MM-dd");
             }
 
             var intentParams = new Dictionary<string, string>();
-            var intent = JsonConvert.DeserializeObject<Intent>(intentJson);
+            Intent intent = null;
+            try
+            {
+                intent = JsonConvert.DeserializeObject<Intent>(intentJson);
+            }
+            catch(Exception e)
+            {
+
+            }
+            
 
             var intentType = intent.TopScoringIntent.Intent;
             intentParams.Add("--type", intentType);

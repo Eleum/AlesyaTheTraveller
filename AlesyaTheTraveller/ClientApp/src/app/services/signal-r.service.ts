@@ -15,6 +15,9 @@ export class SignalRService {
   private storedFlightData: FlightData[];
   private storedHotelData: HotelData[];
 
+  private isHotelsVoiceLineSaid = false;
+  private destinationCity: string;
+
   public newMessageReceived = new Subject<string>();
   public voiceMessageReceived = new Subject<string>();
   public newIntentReceived = new Subject<string>();
@@ -83,7 +86,6 @@ export class SignalRService {
   }
 
   fetchData(type: number) {
-    console.log("fetch with type" + type);
     if (type == 0) {
       this.flightDataFetched.next(this.storedFlightData);
     } else {
@@ -118,6 +120,14 @@ export class SignalRService {
         this.router.navigateByUrl('/flight-data');
       } else if (item.startsWith("hotel")) {
         this.router.navigateByUrl('/hotel-data');
+        if (!this.isHotelsVoiceLineSaid) {
+          if (this.storedHotelData == undefined || this.storedHotelData.length == 0) {
+            this.voiceMessageReceived.next("Отели по запросу не найдены");
+          } else {
+            this.isHotelsVoiceLineSaid = true;
+            this.voiceMessageReceived.next(`"Вот где можно остановиться в городе ${this.destinationCity}"`);
+          }
+        }
       } else if (item.startsWith("main")) {
         this.router.navigateByUrl('/');
       }
@@ -125,11 +135,15 @@ export class SignalRService {
   }
   public fetchDataListener = () => {
     this.hubConnection.on("FetchData", (rootObj, type) => {
+      console.log("fetch data signalr");
       if (type == 0) {
+        console.log(rootObj);
+        console.log(rootObj.length);
         if (rootObj == null || rootObj.length == 0) {
           this.voiceMessageReceived.next("К сожалению, не удалось получить рейсы по заданному направлению. Повторите попытку позже.");
           return;
         }
+        this.isHotelsVoiceLineSaid = false;
         this.storedFlightData = rootObj.map(x => {
           return <FlightData>
             {
@@ -146,6 +160,13 @@ export class SignalRService {
         this.fetchData(0);
         this.voiceMessageReceived.next("Вот, какие рейсы удалось получить");
       } else {
+        if (rootObj == undefined) {
+          console.log("!UNDEFINED");
+        }
+
+        if (rootObj === null) {
+          console.log("!NULL");
+        }
         if (rootObj == null || rootObj.length == 0)
           return;
         this.storedHotelData = rootObj.map(x => {
@@ -170,7 +191,11 @@ export class SignalRService {
               ReviewsCount: x.review_nr
             };
         });
+        this.destinationCity = this.storedHotelData[0].City;
         this.fetchData(1);
+        if (this.storedFlightData != undefined) {
+          this.voiceMessageReceived.next("Я еще нашла отели, могу показать");
+        }
       }
     });
   }

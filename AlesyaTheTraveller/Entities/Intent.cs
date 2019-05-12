@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AlesyaTheTraveller.Extensions;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,6 +52,22 @@ namespace AlesyaTheTraveller.Entities
     public class Resolution
     {
         [JsonProperty("values")]
-        public dynamic[] Values { get; set; }
+        [JsonConverter(typeof(ResolutionValuesConverter))]
+        public ResolutionData[] DataValues { get; set; }
+    }
+
+    public class ResolutionData
+    {
+        [JsonProperty("timex", NullValueHandling = NullValueHandling.Ignore)]
+        public string TimeX{ get; set; }
+
+        [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
+        public string Type { get; set; }
+
+        [JsonProperty("value", NullValueHandling = NullValueHandling.Ignore)]
+        public string Value { get; set; }
+
+        [JsonIgnore]
+        public IEnumerable<string> ValuesArray { get; set; }
     }
 }
