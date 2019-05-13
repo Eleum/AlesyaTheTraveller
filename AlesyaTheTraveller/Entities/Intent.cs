@@ -67,6 +67,12 @@ namespace AlesyaTheTraveller.Entities
         [JsonProperty("value", NullValueHandling = NullValueHandling.Ignore)]
         public string Value { get; set; }
 
+        [JsonProperty("start", NullValueHandling = NullValueHandling.Ignore)]
+        public string Start { get; set; }
+
+        [JsonProperty("end", NullValueHandling = NullValueHandling.Ignore)]
+        public string End { get; set; }
+
         [JsonIgnore]
         public IEnumerable<string> ValuesArray { get; set; }
     }

@@ -74,28 +74,43 @@ namespace AlesyaTheTraveller.Extensions
         {
             string GetOutboundDate(Intent intnt)
             {
-                // if something goes wrong, return tomorrow
-                var dateToReturn = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+                var format = "yyyy-MM-dd";
+                var outbountDate = intnt.Entities.FirstOrDefault(x => x.Type.StartsWith("builtin.datetimeV2"));
 
-                var outbountDate = intnt.Entities.FirstOrDefault(x => x.Type == "builtin.datetimeV2.date");
+                // if something goes wrong, return tomorrow
+                var dateToReturn = DateTime.Now.AddDays(1).ToString(format);
 
                 if (outbountDate == null)
                     return dateToReturn;
 
+                DateTime[] dates = null;
+                var firstValue = outbountDate.Resolution.DataValues.First();
+                
                 // get possible dates for user date input
-                var dates = new[] 
+                if (outbountDate.Type.EndsWith("daterange")) // when said 'next week' and so on...
                 {
-                    DateTime.ParseExact(outbountDate.Resolution.DataValues.First().Value, "yyyy-MM-dd", null),
-                    DateTime.ParseExact(outbountDate.Resolution.DataValues.First().Value, "yyyy-MM-dd", null)
-                };
+                    dates = new[]
+                    {
+                        DateTime.ParseExact(firstValue.Start, format, null),
+                        DateTime.ParseExact(firstValue.End, format, null)
+                    };
+                }
+                else // other cases
+                {
+                    dates = new[]
+                    {
+                        DateTime.ParseExact(firstValue.Start, format, null),
+                        DateTime.ParseExact(outbountDate.Resolution.DataValues.Last().Value, format, null)
+                    };
+                }
 
                 // return first value greater than DateTime.Now
                 // if there's no, return tomorrow
                 return dates[0] < DateTime.Now
                     ? dates[1] < DateTime.Now
                         ? dateToReturn
-                        : dates[1].ToString("yyyy-MM-dd")
-                    : dates[0].ToString("yyyy-MM-dd");
+                        : dates[1].ToString(format)
+                    : dates[0].ToString(format);
             }
 
             var intentParams = new Dictionary<string, string>();
@@ -115,7 +130,18 @@ namespace AlesyaTheTraveller.Extensions
 
             if (intentType == "Interaction")
             {
-                intentParams.Add("item", intent.Entities.First(x => x.Type == "item").Value);
+                var sortType = intent.Entities.FirstOrDefault(x => x.Type == "builtin.number")?.Value;
+
+                //TODO: change to get 'action' entity
+                if (!string.IsNullOrEmpty(sortType))
+                {
+                    intentParams.Add("number", sortType);
+                }
+                else
+                {
+                    intentParams.Add("item", intent.Entities.First(x => x.Type == "item").Value);
+                }
+                
             }
             else if (intentType == "Travelling")
             {

@@ -234,7 +234,14 @@ namespace AlesyaTheTraveller.Extensions
             switch(type)
             {
                 case "Interaction":
-                    await _context.Clients.All.SendAsync("SwitchToItem", intentParams["item"]);
+                    if(intentParams.ContainsKey("item"))
+                    {
+                        await _context.Clients.All.SendAsync("SwitchToItem", intentParams["item"]);
+                    }
+                    else
+                    {
+                        await _context.Clients.All.SendAsync("SortData", intentParams["number"]);
+                    }
                     break;
                 case "Travelling":
                     // switch to flight-data component in client app

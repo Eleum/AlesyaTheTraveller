@@ -23,6 +23,7 @@ export class SignalRService {
   public newIntentReceived = new Subject<string>();
   public flightDataFetched = new Subject<FlightData[]>();
   public hotelDataFetched = new Subject<HotelData[]>();
+  public sortingCalled = new Subject<number>();
 
   covertFloat32ToUInt8(buffer: Float32Array) {
     let l = buffer.length;
@@ -98,21 +99,25 @@ export class SignalRService {
       this.stopVoiceStream();
     });
   }
+
   public broadcastMessageRuEngListener = () => {
     this.hubConnection.on("BroadcastMessageRuEng", (message) => {
       this.newMessageReceived.next(message);
     });
   }
+
   public broadcastVoiceMessageListener = () => {
     this.hubConnection.on("SayVoiceMessage", (message) => {
       this.voiceMessageReceived.next(message);
     });
   }
+
   public broadcastIntentListener = () => {
     this.hubConnection.on("BroadcastIntent", (intent) => {
       this.newIntentReceived.next(intent);
     });
   }
+
   public switchItemListener = () => {
     this.hubConnection.on("SwitchToItem", (data) => {
       let item = data.toLowerCase();
@@ -133,12 +138,11 @@ export class SignalRService {
       }
     });
   }
+
   public fetchDataListener = () => {
     this.hubConnection.on("FetchData", (rootObj, type) => {
       console.log("fetch data signalr");
       if (type == 0) {
-        console.log(rootObj);
-        console.log(rootObj.length);
         if (rootObj == null || rootObj.length == 0) {
           this.voiceMessageReceived.next("К сожалению, не удалось получить рейсы по заданному направлению. Повторите попытку позже.");
           return;
@@ -198,5 +202,35 @@ export class SignalRService {
         }
       }
     });
+  }
+
+  public sortDataListener = () => {
+    this.hubConnection.on("SortData", (type: number) => {
+      console.log("sort");
+      // получить активную страницу и вызвать fetchData()
+      this.sortData(type);
+      this.fetchData(1);
+    });
+  }
+
+  private sortData(type) {
+    console.log(this.storedHotelData);
+    if (this.storedHotelData == undefined) {
+      return;
+    }
+    switch (type) {
+      case "1": {
+        this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
+          return obj1.TotalPrice - obj2.TotalPrice;
+        });
+        break;
+      }
+      case "2": {
+        this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
+          return obj2.TotalPrice - obj1.TotalPrice;
+        });
+        break;
+      }
+    }
   }
 }

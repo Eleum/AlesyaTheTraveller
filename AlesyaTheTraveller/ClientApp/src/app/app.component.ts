@@ -21,6 +21,7 @@ export class AppComponent implements OnInit {
     this.service.broadcastIntentListener();
     this.service.switchItemListener();
     this.service.fetchDataListener();
+    this.service.sortDataListener();
 
     // subscribe to update UI with message on new messages from server
     this.service.newMessageReceived
