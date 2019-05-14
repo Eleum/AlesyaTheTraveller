@@ -35,6 +35,7 @@
     "ngx-toastr": "^10.0.4",
     "popper.js": "^1.15.0",
     "recordrtc": "^5.5.4",
+    "roboto-fontface": "^0.10.0",
     "rxjs": "^6.0.0",
     "yandex-speech": "0.0.14",
     "zone.js": "^0.8.26"

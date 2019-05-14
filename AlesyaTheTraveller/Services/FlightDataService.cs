@@ -34,28 +34,34 @@ namespace AlesyaTheTraveller.Services
 
         public async Task<string> CreateSession(Dictionary<string, string> requestParams)
         {
-            _client = new HttpClient();
-            _client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:Host"]);
-            _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
-
-            using (var content = new FormUrlEncodedContent(requestParams))
+            var tries = 3;
+            while (tries > 0)
             {
-                content.Headers.Clear();
-                content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                _client = new HttpClient();
+                _client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:Host"]);
+                _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
 
-                var uri = _config["RapidApi:FlightUrl"] + _config["RapidApi:FlightSearch"] + _config["RapidApi:Version"];
-                var response = await _client.PostAsync(uri, content);
+                using (var content = new FormUrlEncodedContent(requestParams))
+                {
+                    content.Headers.Clear();
+                    content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var segments = response.Headers.Location.Segments;
-                    return segments[segments.Length - 1];
+                    var uri = _config["RapidApi:FlightUrl"] + _config["RapidApi:FlightSearch"] + _config["RapidApi:Version"];
+                    var response = await _client.PostAsync(uri, content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var segments = response.Headers.Location.Segments;
+                        return segments[segments.Length - 1];
+                    }
+                    else
+                    {
+                        var a = response.Content.ReadAsStringAsync();
+                        // errorka
+                    }
                 }
-                else
-                {
-                    var a = response.Content.ReadAsStringAsync();
-                    // errorka
-                }
+
+                tries--;
             }
 
             return null;
@@ -171,42 +177,55 @@ namespace AlesyaTheTraveller.Services
 
         public async Task<HotelData[]> GetHotelData(int destinationId, DateTime arrivalDate)
         {
-            // not to make api call return forbidden result
-            await Task.Delay(1000);
-
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:HotelsHost"]);
-            client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
-
-            var queryParams = HttpUtility.ParseQueryString(string.Empty);
-
-            queryParams["price_filter_currencycode"] = "BYN";
-            queryParams["travel_purpose"] = "leisure";
-            queryParams["search_id"] = "none";
-            queryParams["order_by"] = "popularity";
-            queryParams["languagecode"] = "ru";
-            queryParams["search_type"] = "city";
-            queryParams["offset"] = "0";
-            queryParams["dest_ids"] = destinationId.ToString();
-            queryParams["guest_qty"] = "1";
-            queryParams["offset"] = "0";
-            queryParams["arrival_date"] = arrivalDate.ToString("yyyy-MM-dd");
-            queryParams["departure_date"] = arrivalDate.AddDays(5).ToString("yyyy-MM-dd");
-            queryParams["room_qty"] = "1";
-
-            var uri = _config["RapidApi:HotelsUrl"] + _config["RapidApi:List"] + "?" + queryParams;
-            var response = await client.GetAsync(uri);
-
-            if (!response.IsSuccessStatusCode)
+            var tries = 5;
+            while (tries > 0)
             {
-                //errorka
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:HotelsHost"]);
+                client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
+
+                var queryParams = HttpUtility.ParseQueryString(string.Empty);
+
+                queryParams["price_filter_currencycode"] = "BYN";
+                queryParams["travel_purpose"] = "leisure";
+                queryParams["search_id"] = "none";
+                queryParams["order_by"] = "popularity";
+                queryParams["languagecode"] = "ru";
+                queryParams["search_type"] = "city";
+                queryParams["offset"] = "0";
+                queryParams["dest_ids"] = destinationId.ToString();
+                queryParams["guest_qty"] = "1";
+                queryParams["offset"] = "0";
+                queryParams["arrival_date"] = arrivalDate.ToString("yyyy-MM-dd");
+                queryParams["departure_date"] = arrivalDate.AddDays(5).ToString("yyyy-MM-dd");
+                queryParams["room_qty"] = "1";
+
+                var uri = _config["RapidApi:HotelsUrl"] + _config["RapidApi:List"] + "?" + queryParams;
+                var response = await client.GetAsync(uri);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    //errorka
+                    tries--;
+                    continue;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+
+                if (json.Contains("\"code\":\"403\""))
+                {
+                    await Task.Delay(3000);
+                    tries--;
+                    continue;
+                }
+
+                return JsonConvert.DeserializeObject<RootHotelObject>(json)
+                    .HotelData?
+                    .Select(x => { UpdateMainPhoto(x); return x; })
+                    .ToArray();
             }
 
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<RootHotelObject>(json)
-                .HotelData?
-                .Select(x => { UpdateMainPhoto(x); return x; })
-                .ToArray();
+            return null;
         }
 
         private void UpdateMainPhoto(HotelData data)

@@ -60,19 +60,19 @@ namespace AlesyaTheTraveller.Extensions
             CancellationTokenSource = new CancellationTokenSource();
         }
 
-        public async Task<object> Recognize(CancellationToken token, string input)
+        public async Task<object> Recognize(CancellationToken token)
         {
-            var englishAlternative = input;//"tickets from minsk to kaliningrad the next week";
-            await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"ENG - {englishAlternative}");
+            //var englishAlternative = input;//"tickets from minsk to kaliningrad the next week";
+            //await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"ENG - {englishAlternative}");
 
-            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
+            //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
 
-            var intent = await proc.GetMessageIntentAsync(englishAlternative); //("tickets from Minsk to Paris");
-            var intentParams = await proc.ParseIntent(intent);
+            //var intent = await proc.GetMessageIntentAsync(englishAlternative); //("tickets from Minsk to Paris");
+            //var intentParams = await proc.ParseIntent(intent);
 
-            await ProcessIntentParams(intentParams);
+            //await ProcessIntentParams(intentParams);
 
-            return null;
+            //return null;
 
             var spec = new RecognitionSpec
             {
@@ -129,17 +129,15 @@ namespace AlesyaTheTraveller.Extensions
             };
             silenceCheckWorker.DoWork += (sender, args) =>
             {
-                var timeout = 2500;
+                var timeout = 1500;
                 var currentTime = 0;
                 var silenceTreshold = 5000;
 
                 while (!args.Cancel)
                 {
-                    //System.Diagnostics.Debug.WriteLine($"working... current time is {currentTime}");
                     if (silenceCheckWorker.CancellationPending || currentTime >= timeout)
                     {
                         args.Cancel = true;
-                        //System.Diagnostics.Debug.WriteLine("recording stopped from background worker");
                         return;
                     }
 
@@ -174,16 +172,16 @@ namespace AlesyaTheTraveller.Extensions
                         {
                             // or use foreach (var alternative in chunk.Alternatives)
 
-                            //var alternative = chunk.Alternatives.First();
-                            //var englishAlternative = await TranslateMessageAsync(alternative.Text);
-                            //await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}");
+                            var alternative = chunk.Alternatives.First();
+                            var englishAlternative = await TranslateMessageAsync(alternative.Text);
+                            await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}");
 
-                            //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
+                            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
 
-                            //var intent = await proc.GetMessageIntentAsync(englishAlternative); //("tickets from Minsk to Paris");
-                            //var intentParams = await proc.ParseIntent(intent);
+                            var intent = await proc.GetMessageIntentAsync(englishAlternative); //("tickets from Minsk to Paris");
+                            var intentParams = await proc.ParseIntent(intent);
 
-                            //await ProcessIntentParams(intentParams);
+                            await ProcessIntentParams(intentParams);
 
                             //var tasks = new List<Task>
                             //{
@@ -256,13 +254,13 @@ namespace AlesyaTheTraveller.Extensions
                     }
                     break;
                 case "Travelling":
-                    // switch to flight-data component in client app
-                    await _context.Clients.All.SendAsync("SwitchToItem", "flight");
-
                     var hotels = RunHotelSearch(intentParams["--destination"], intentParams["outboundDate"]);
                     var flights = RunFlightSearch(intentParams);
 
-                    await Task.WhenAll(flights, hotels);
+                    await Task.WhenAny(flights, hotels);
+
+                    // switch to flight-data component in client app
+                    await _context.Clients.All.SendAsync("SwitchToItem", "flight");
                     break;
             }
         }
@@ -273,7 +271,13 @@ namespace AlesyaTheTraveller.Extensions
             Hotel
         }
 
-        private async Task RunFlightSearch(Dictionary<string, string> param)
+        /// <summary>
+        /// Searches flights based on dictionary filled params
+        /// </summary>
+        /// <param name="param">Search query parameters</param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        private async Task RunFlightSearch(Dictionary<string, string> param, IHubContext<VoiceStreamingHub> context)
         {
             param.Remove("--destination");
 
@@ -288,13 +292,19 @@ namespace AlesyaTheTraveller.Extensions
             }
             catch(Exception e)
             {
-
+                await context.Clients.All.SendAsync("Notify", $"{e.Message}\n{e.InnerException?.Message}", 3);
             }
-
             await _context.Clients.All.SendAsync("FetchData", flights, FetchType.Flight);
         }
 
-        private async Task RunHotelSearch(string destination, string outboundDate)
+        /// <summary>
+        /// Searches hotels in destination city with arrival date as outboundDate
+        /// </summary>
+        /// <param name="destination">Destination city</param>
+        /// <param name="outboundDate">Hotel arrival date</param>
+        /// <param name="context">Hub context to communicate with client app</param>
+        /// <returns></returns>
+        private async Task RunHotelSearch(string destination, string outboundDate, IHubContext<VoiceStreamingHub> context)
         {
             var locations = await _flightData.GetLocations(destination);
 

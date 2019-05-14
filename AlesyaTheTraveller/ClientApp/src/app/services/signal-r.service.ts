@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import * as signalR from '@aspnet/signalr';
 import { FlightData } from '../flight-data/flight-data.model';
 import { HotelData } from '../hotel-data/hotel-data.model';
+import { debug } from 'util';
 
 @Injectable({
   providedIn: 'root'
@@ -19,11 +21,12 @@ export class SignalRService {
   private destinationCity: string;
 
   public newMessageReceived = new Subject<string>();
-  public voiceMessageReceived = new Subject<string>();
+  //public voiceMessageReceived = new Subject<string>();
   public newIntentReceived = new Subject<string>();
   public flightDataFetched = new Subject<FlightData[]>();
   public hotelDataFetched = new Subject<HotelData[]>();
   public sortingCalled = new Subject<number>();
+  public notifyTriggered = new Subject<any>();
 
   covertFloat32ToUInt8(buffer: Float32Array) {
     let l = buffer.length;
@@ -34,7 +37,16 @@ export class SignalRService {
     return btoa(String.fromCharCode.apply(null, new Uint8Array(buf.buffer)));
   }
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, private http: HttpClient) {
+    this.startConnection();
+    this.stopVoiceStreamListener();
+    this.broadcastMessageRuEngListener();
+    this.broadcastVoiceMessageListener();
+    this.broadcastIntentListener();
+    this.switchItemListener();
+    this.fetchDataListener();
+    this.sortDataListener();
+  }
 
   startConnection() {
     this.hubConnection =
@@ -48,8 +60,16 @@ export class SignalRService {
       .catch(err => console.log('Error while starting hub connection: ' + err));
   }
 
-  startVoiceStream(input: string) {
-    this.hubConnection.send("StartRecognition", input)
+  startRecording() {
+    this.startVoiceStream();
+  }
+
+  stopRecording() {
+    this.stopVoiceStream();
+  }
+
+  startVoiceStream() {
+    this.hubConnection.send("StartRecognition")
       .catch(err => console.log("server Recognition() error: " + err));
 
     navigator.mediaDevices.getUserMedia({ audio: true })
@@ -75,11 +95,15 @@ export class SignalRService {
         console.error('startRecording() error: ' + e.message);
       })
   }
+
   stopVoiceStream() {
     try {
       let stream = this.stream;
       stream.getAudioTracks().forEach(track => track.stop());
-      this.audioCtx.close();
+      this.audioCtx.close().catch(err => {
+        debugger;
+        console.error(err)
+      });
     }
     catch (error) {
       console.error('stopRecording() error: ' + error);
@@ -92,6 +116,40 @@ export class SignalRService {
     } else {
       this.hotelDataFetched.next(this.storedHotelData);
     }
+  }
+
+  private sayVoiceMessageHandler(message: string) {
+    var formData = new FormData();
+    formData.append('message', message);
+    this.http.post('https://localhost:44389/api/VoiceStreaming', formData)
+      .subscribe((response: any) => {
+        let byteCharacters = atob(response.response);
+        let byteNumbers = new Array(byteCharacters.length);
+        for (var i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+
+        let byteArray = new Uint8Array(byteNumbers);
+        let blob = new Blob([byteArray], { type: response.contentType });
+        let url = URL.createObjectURL(blob);
+
+        let audio = new Audio();
+        audio.src = url;
+        let playPromise = audio.play();
+
+        // only Chrome(?) supports play promise
+        if (playPromise !== undefined) {
+          playPromise.then(function () {
+            // playback started
+          }).catch(function (error) {
+            console.error(error);
+            // playback failed.
+            // do smthing with it
+          });
+        }
+      }, err => {
+        console.error(err)
+      });
   }
 
   public stopVoiceStreamListener = () => {
@@ -108,7 +166,8 @@ export class SignalRService {
 
   public broadcastVoiceMessageListener = () => {
     this.hubConnection.on("SayVoiceMessage", (message) => {
-      this.voiceMessageReceived.next(message);
+      debugger;
+      this.sayVoiceMessageHandler(message);
     });
   }
 
@@ -127,10 +186,10 @@ export class SignalRService {
         this.router.navigateByUrl('/hotel-data');
         if (!this.isHotelsVoiceLineSaid) {
           if (this.storedHotelData == undefined || this.storedHotelData.length == 0) {
-            this.voiceMessageReceived.next("Отели по запросу не найдены");
+            this.sayVoiceMessageHandler("Отели по запросу не найдены");
           } else {
             this.isHotelsVoiceLineSaid = true;
-            this.voiceMessageReceived.next(`"Вот где можно остановиться в городе ${this.destinationCity}"`);
+            this.sayVoiceMessageHandler(`"Вот где можно остановиться в городе ${this.destinationCity}"`);
           }
         }
       } else if (item.startsWith("main")) {
@@ -141,10 +200,13 @@ export class SignalRService {
 
   public fetchDataListener = () => {
     this.hubConnection.on("FetchData", (rootObj, type) => {
-      console.log("fetch data signalr");
+      this.storedFlightData = null;
+      this.storedHotelData = null;
+
       if (type == 0) {
+        debugger;
         if (rootObj == null || rootObj.length == 0) {
-          this.voiceMessageReceived.next("К сожалению, не удалось получить рейсы по заданному направлению. Повторите попытку позже.");
+          this.sayVoiceMessageHandler("К сожалению, не удалось получить рейсы по заданному направлению. Повторите попытку позже.");
           return;
         }
         this.isHotelsVoiceLineSaid = false;
@@ -162,7 +224,7 @@ export class SignalRService {
             };
         });
         this.fetchData(0);
-        this.voiceMessageReceived.next("Вот, какие рейсы удалось получить");
+        this.sayVoiceMessageHandler("Вот, какие рейсы удалось получить");
       } else {
         if (rootObj == null || rootObj.length == 0)
           return;
@@ -197,9 +259,14 @@ export class SignalRService {
   public sortDataListener = () => {
     this.hubConnection.on("SortData", (type: number) => {
       console.log("sort");
-      // получить активную страницу и вызвать fetchData()
       this.sortData(type);
       this.fetchData(1);
+    });
+  }
+
+  public notifyListener = () => {
+    this.hubConnection.on("Notify", (message, type) => {
+      this.notifyTriggered.next({ "message": message, "type": type });
     });
   }
 

@@ -99,7 +99,7 @@ namespace AlesyaTheTraveller.Extensions
                 {
                     dates = new[]
                     {
-                        DateTime.ParseExact(firstValue.Start, format, null),
+                        DateTime.ParseExact(firstValue.Value, format, null),
                         DateTime.ParseExact(outbountDate.Resolution.DataValues.Last().Value, format, null)
                     };
                 }

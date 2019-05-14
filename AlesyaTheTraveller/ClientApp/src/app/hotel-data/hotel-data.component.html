@@ -1,4 +1,28 @@
-<div class="container">
+<section class="hero-banner-sm magic-ball magic-ball-banner">
+  <div class="container">
+    <div class="hero-banner-sm-content">
+      <h1>Отели</h1>
+      <p>{{hotelText || "Не найдено никаких отелей в выбранной точке назначения или не задано направление"}}</p>
+    </div>
+    <button class="button mt-4" (click)="startRecording()" *ngIf="hotelText != undefined">Начать</button>
+  </div>
+</section>
+<section class="section-padding magic-ball magic-ball-sm magic-ball-about" *ngIf="hotelText == undefined">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-5 col-md-6 align-self-center about-content">
+        <h2>Возможные дальнейшие <br class="d-none d-xl-block">действия</h2>
+        <ul class="list-unstyled">
+          <li><p class="m-1"><i class="fa fa-microphone mr-1"></i>Задать другое направление или повторить запрос</p></li>
+          <li><p class="m-1"><i class="fa fa-microphone mr-1"></i>Открыть рейсы</p></li>
+          <li><p class="mt-1 ml-1 mb-4"><i class="fa fa-microphone mr-1"></i>Вернуться на главную</p></li>
+        </ul>
+        <button class="button" (click)="startRecording()">Начать</button>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="container mt-4">
   <div class="row">
     <ul class="list-group list-unstyled">
       <li class="mb-3 full-height" *ngFor="let hotel of hotelData | async">

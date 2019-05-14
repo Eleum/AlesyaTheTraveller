@@ -3,6 +3,8 @@ import { NgModule, LOCALE_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
 
 import { AppComponent } from './app.component';
 import { NavMenuComponent } from './nav-menu/nav-menu.component';
@@ -27,7 +29,8 @@ registerLocaleData(localeRu);
     FetchDataComponent,
     FlightDataComponent,
     HotelDataComponent,
-    NumberToArrayPipe
+    NumberToArrayPipe,
+    BrowserAnimationsModule    
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -39,7 +42,8 @@ registerLocaleData(localeRu);
       { path: 'fetch-data', component: FetchDataComponent },
       { path: 'flight-data', component: FlightDataComponent },
       { path: 'hotel-data', component: HotelDataComponent }
-    ])
+    ]),
+    ToastrModule.forRoot()
   ],
   providers: [
     { provide: LOCALE_ID, useValue: "ru-RU" }
