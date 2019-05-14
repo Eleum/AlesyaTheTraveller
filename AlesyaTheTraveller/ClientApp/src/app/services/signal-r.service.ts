@@ -48,8 +48,8 @@ export class SignalRService {
       .catch(err => console.log('Error while starting hub connection: ' + err));
   }
 
-  startVoiceStream() {
-    this.hubConnection.send("StartRecognition")
+  startVoiceStream(input: string) {
+    this.hubConnection.send("StartRecognition", input)
       .catch(err => console.log("server Recognition() error: " + err));
 
     navigator.mediaDevices.getUserMedia({ audio: true })
@@ -164,13 +164,6 @@ export class SignalRService {
         this.fetchData(0);
         this.voiceMessageReceived.next("Вот, какие рейсы удалось получить");
       } else {
-        if (rootObj == undefined) {
-          console.log("!UNDEFINED");
-        }
-
-        if (rootObj === null) {
-          console.log("!NULL");
-        }
         if (rootObj == null || rootObj.length == 0)
           return;
         this.storedHotelData = rootObj.map(x => {
@@ -197,9 +190,6 @@ export class SignalRService {
         });
         this.destinationCity = this.storedHotelData[0].City;
         this.fetchData(1);
-        if (this.storedFlightData != undefined) {
-          this.voiceMessageReceived.next("Я еще нашла отели, могу показать");
-        }
       }
     });
   }
@@ -214,23 +204,69 @@ export class SignalRService {
   }
 
   private sortData(type) {
-    console.log(this.storedHotelData);
-    if (this.storedHotelData == undefined) {
-      return;
-    }
-    switch (type) {
-      case "1": {
-        this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
-          return obj1.TotalPrice - obj2.TotalPrice;
-        });
-        break;
+    if (this.router.url == "/flight-data") {
+      console.log(this.storedFlightData);
+      if (this.storedFlightData == undefined) {
+        return;
       }
-      case "2": {
-        this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
-          return obj2.TotalPrice - obj1.TotalPrice;
-        });
-        break;
+      //switch (type) {
+      //  case "1": {
+      //    this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
+      //      return obj1.TotalPrice - obj2.TotalPrice;
+      //    });
+      //    break;
+      //  }
+      //  case "2": {
+      //    this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
+      //      return obj2.TotalPrice - obj1.TotalPrice;
+      //    });
+      //    break;
+      //  }
+      //}
+    } else if (this.router.url == "/hotel-data") {
+      console.log(this.storedHotelData);
+      if (this.storedHotelData == undefined) {
+        return;
+      }
+      switch (type) {
+        case "1": {
+          this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
+            return obj1.TotalPrice - obj2.TotalPrice;
+          });
+          break;
+        }
+        case "2": {
+          this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
+            return obj2.TotalPrice - obj1.TotalPrice;
+          });
+          break;
+        }
+        case "3": {
+          this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
+            return obj2.ReviewScore - obj1.ReviewScore;
+          });
+          break;
+        }
+        case "4": {
+          this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
+            return obj1.Class - obj2.Class;
+          });
+          break;
+        }
+        case "5": {
+          this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
+            return obj2.Class - obj1.Class;
+          });
+          break;
+        }
+        case "6": {
+          this.storedHotelData = this.storedHotelData.sort(function (obj1, obj2) {
+            return obj2.ReviewsCount - obj1.ReviewsCount;
+          });
+          break;
+        }
       }
     }
+    
   }
 }

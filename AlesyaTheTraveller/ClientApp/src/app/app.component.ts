@@ -8,8 +8,9 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  public message = "";
-  public intent = "";
+  private input = "";
+  private message = "";
+  private intent = "";
 
   constructor(public service: SignalRService, private http: HttpClient) { }
 
@@ -44,7 +45,7 @@ export class AppComponent implements OnInit {
 
   startRecording() {
     this.message = "";
-    this.service.startVoiceStream();
+    this.service.startVoiceStream(this.input);
   }
 
   stopRecording() {
@@ -56,6 +57,10 @@ export class AppComponent implements OnInit {
     formData.append('message', message);
     this.http.post('https://localhost:44389/api/VoiceStreaming', formData)
       .subscribe((response: any) => {
+        if (response == null) {
+          console.log("VOICE IS NULL");
+          return;
+        }
         let byteCharacters = atob(response.response);
         let byteNumbers = new Array(byteCharacters.length);
         for (var i = 0; i < byteCharacters.length; i++) {
@@ -83,6 +88,10 @@ export class AppComponent implements OnInit {
       }, err => {
         console.error(err)
       });
+  }
+
+  fillInput(message: string) {
+    this.input = message;
   }
 
   title = 'app';

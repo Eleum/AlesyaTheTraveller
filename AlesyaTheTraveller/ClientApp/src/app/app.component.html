@@ -3,9 +3,25 @@
   <div class="container">
     <audio id="voice-response" hidden></audio>
     <div id="inputForm">
-      <input type="text" />
+      <input type="text" [(ngModel)]="input" id="inp"/>
       <input type="button" id="startRecButton" value="Старт" (click)="startRecording()" />
       <input type="button" id="stopRecButton" value="Стоп" (click)="stopRecording()" />
+    </div>
+    <div>
+      <ul class="list-unstyled">
+        <li><a (click)="fillInput('tickets minsk saint petersburg next week')">tickets minsk saint petersburg next week</a></li>
+        <li><a (click)="fillInput('tickets minsk kaliningrad next week')">tickets minsk kaliningrad next week</a></li>
+        <li><a (click)="fillInput('tickets from minsk to saint petersburg next week')">tickets from minsk to saint petersburg next week</a></li>
+        <li><a (click)="fillInput('sort 1')">sort 1</a></li>
+        <li><a (click)="fillInput('sort 2')">sort 2</a></li>
+        <li><a (click)="fillInput('sort 3')">sort 3</a></li>
+        <li><a (click)="fillInput('sort 4')">sort 4</a></li>
+        <li><a (click)="fillInput('sort 5')">sort 5</a></li>
+        <li><a (click)="fillInput('sort 6')">sort 6</a></li>
+        <li><a (click)="fillInput('open hotel')">open hotel</a></li>
+        <li><a (click)="fillInput('open flight')">open flight</a></li>
+        <li><a (click)="fillInput('on main')">on main</a></li>
+      </ul>
     </div>
     <div class="container">
       <div class="row">

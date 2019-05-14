@@ -60,8 +60,20 @@ namespace AlesyaTheTraveller.Extensions
             CancellationTokenSource = new CancellationTokenSource();
         }
 
-        public async Task<object> Recognize(CancellationToken token)
+        public async Task<object> Recognize(CancellationToken token, string input)
         {
+            var englishAlternative = input;//"tickets from minsk to kaliningrad the next week";
+            await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"ENG - {englishAlternative}");
+
+            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
+
+            var intent = await proc.GetMessageIntentAsync(englishAlternative); //("tickets from Minsk to Paris");
+            var intentParams = await proc.ParseIntent(intent);
+
+            await ProcessIntentParams(intentParams);
+
+            return null;
+
             var spec = new RecognitionSpec
             {
                 LanguageCode = "ru-RU",
@@ -162,16 +174,16 @@ namespace AlesyaTheTraveller.Extensions
                         {
                             // or use foreach (var alternative in chunk.Alternatives)
 
-                            var alternative = chunk.Alternatives.First();
-                            var englishAlternative = await TranslateMessageAsync(alternative.Text);
-                            await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}");
+                            //var alternative = chunk.Alternatives.First();
+                            //var englishAlternative = await TranslateMessageAsync(alternative.Text);
+                            //await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}");
 
-                            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
+                            //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
 
-                            var intent = await proc.GetMessageIntentAsync(englishAlternative); //("tickets from Minsk to Paris");
-                            var intentParams = await proc.ParseIntent(intent);
+                            //var intent = await proc.GetMessageIntentAsync(englishAlternative); //("tickets from Minsk to Paris");
+                            //var intentParams = await proc.ParseIntent(intent);
 
-                            await ProcessIntentParams(intentParams);
+                            //await ProcessIntentParams(intentParams);
 
                             //var tasks = new List<Task>
                             //{

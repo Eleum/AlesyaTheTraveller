@@ -16,9 +16,9 @@ namespace AlesyaTheTraveller.Entities
             helper = new VoiceStreamingHelper(context, flightData, flightDataCache, configuration);
         }
 
-        public async Task StartRecognition()
+        public async Task StartRecognition(string input)
         {
-            await Task.Run(() => helper.Recognize(helper.CancellationTokenSource.Token).ConfigureAwait(false));
+            await Task.Run(() => helper.Recognize(helper.CancellationTokenSource.Token, input).ConfigureAwait(false));
         }
 
         public void ProcessVoiceStream(string base64Array)

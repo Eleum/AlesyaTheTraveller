@@ -112,6 +112,22 @@ namespace AlesyaTheTraveller.Extensions
                         : dates[1].ToString(format)
                     : dates[0].ToString(format);
             }
+            void CheckDestinationConsistency(Entity entity)
+            {
+                if (entity == null)
+                    return;
+
+                var parts = entity.Value.Split(' ');
+                if (parts.Length < 2)
+                    return;
+
+                var lastWord = parts.Last();
+                if (lastWord == "this" || lastWord == "next" ||
+                    lastWord == "last" || lastWord == "previous")
+                {
+                    entity.Value = string.Join(" ", parts.Take(parts.Length-1));
+                }
+            }
 
             var intentParams = new Dictionary<string, string>();
             Intent intent = null;
@@ -123,7 +139,6 @@ namespace AlesyaTheTraveller.Extensions
             {
 
             }
-            
 
             var intentType = intent.TopScoringIntent.Intent;
             intentParams.Add("--type", intentType);
@@ -175,7 +190,28 @@ namespace AlesyaTheTraveller.Extensions
                 {
                     if (!intent.Entities.Any(x => x.Type == "placeQualifier"))
                     {
+                        var first = false;
+                        foreach(var destination in intent.Entities.Where(x => x.Type == "Places.DestinationAddress"))
+                        {
+                            CheckDestinationConsistency(destination);
+                            first = !first;
 
+                            if(!first)
+                            {
+                                // will be used for hotels search and stuff
+                                // not a part of flight query
+                                intentParams["--destination"] = destination.Value;
+                            }
+
+                            var info = await FetchPlaceInfo(destination.Value);
+                            if (info.Item1.Any())
+                            {
+                                // fix Russia->Россия after St. Petersburg search
+                                intentParams.Add(first? "originPlace" : "destinationPlace",
+                                    info.Item1.FirstOrDefault(x => (x.CountryName == "Russia" ? "Россия" : x.CountryName) == info.Item2)?.PlaceId ?? 
+                                    info.Item1.First().PlaceId);
+                            }
+                        }
                     }
                     else if (intent.Entities.Count(x => x.Type == "placeQualifier") == 1)
                     {
@@ -207,26 +243,20 @@ namespace AlesyaTheTraveller.Extensions
                             }
                             else
                             {
-                                var query = intent.Entities
+                                var queryEntity = intent.Entities
                                     .Where(x => x.StartIndex == item.Key + 2 && x.Type == "Places.DestinationAddress")
-                                    .First().Value;
+                                    .First();
+
+                                CheckDestinationConsistency(queryEntity);
 
                                 if (item.Value == PlaceQualifierDirection.To)
-                                {
-                                    // will be used for hotels search and stuff
-                                    // not a part of flight query
-                                    intentParams["--destination"] = query;
-                                }
-
-                                var countryServiceCode = _cache.GetLocation(query).CountryCode;
-                                var country = _cache.GetCountryByCode(countryServiceCode);
-
-                                var places = await _dataService.GetPlacesList(query);
-
-                                if (places.Any())
+                                    intentParams["--destination"] = queryEntity.Value;
+                                
+                                var info = await FetchPlaceInfo(queryEntity.Value);
+                                if (info.Item1.Any())
                                 {
                                     intentParams.Add(item.Value == PlaceQualifierDirection.From ? "originPlace" : "destinationPlace",
-                                        places.FirstOrDefault(x => x.CountryName == country.Name)?.PlaceId ?? places.First().PlaceId);
+                                        info.Item1.FirstOrDefault(x => (x.CountryName == "Russia" ? "Россия" : x.CountryName) == info.Item2)?.PlaceId ?? info.Item1.First().PlaceId);
                                 }
                             }
                         }
@@ -239,6 +269,20 @@ namespace AlesyaTheTraveller.Extensions
             }
 
             return intentParams;
+        }
+
+        /// <summary>
+        /// Places list, country name for input query
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        private async Task<Tuple<PlaceEntity[], string>> FetchPlaceInfo(string query)
+        {
+            var countryServiceCode = _cache.GetLocation(query).CountryCode;
+            var country = _cache.GetCountryByCode(countryServiceCode);
+            var places = await _dataService.GetPlacesList(query);
+
+            return new Tuple<PlaceEntity[], string>(places, country.Name);
         }
     }
 }

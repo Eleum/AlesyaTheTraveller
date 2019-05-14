@@ -87,7 +87,12 @@ namespace AlesyaTheTraveller.Services
             _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
 
             var uri = _config["RapidApi:FlightUrl"] + _config["RapidApi:PlaceSearch"] + _config["RapidApi:Version"] + 
-                _config["RapidApi:LocaleSettings"] + "?query=" + query;
+                _config["RapidApi:LocaleSettings"] + "?query=" + query.Replace(" ", "+");
+
+            // because it doesn't work for russian language...
+            if (query.Contains("petersburg"))
+                uri = uri.Replace("ru-RU", "en-US");
+
             var response = await _client.GetAsync(uri);
 
             if(!response.IsSuccessStatusCode)
@@ -166,6 +171,9 @@ namespace AlesyaTheTraveller.Services
 
         public async Task<HotelData[]> GetHotelData(int destinationId, DateTime arrivalDate)
         {
+            // not to make api call return forbidden result
+            await Task.Delay(1000);
+
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:HotelsHost"]);
             client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
@@ -196,7 +204,7 @@ namespace AlesyaTheTraveller.Services
 
             var json = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<RootHotelObject>(json)
-                .HotelData
+                .HotelData?
                 .Select(x => { UpdateMainPhoto(x); return x; })
                 .ToArray();
         }
