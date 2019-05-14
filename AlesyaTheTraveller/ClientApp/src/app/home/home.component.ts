@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SignalRService } from '../services/signal-r.service';
-import { ToastrService } from 'ngx-toastr';
+import { ToastrService, GlobalConfig } from 'ngx-toastr';
 
 
 @Component({
@@ -8,6 +8,9 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './home.component.html',
 })
 export class HomeComponent implements OnInit {
+  private input = "";
+  private message = "";
+  private intent = "";
 
   constructor(private service: SignalRService, private toastr: ToastrService) { }
 
@@ -24,6 +27,9 @@ export class HomeComponent implements OnInit {
         this.intent = intent;
       });
 
+    this.toastr.toastrConfig.progressBar = true;
+    this.toastr.toastrConfig.tapToDismiss
+    this.toastr.toastrConfig.progressAnimation = 'decreasing';
     this.service.notifyTriggered
       .subscribe(notification => {
         switch (notification.type) {

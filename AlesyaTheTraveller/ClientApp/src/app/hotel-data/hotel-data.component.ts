@@ -24,6 +24,9 @@ export class HotelDataComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       console.log(data);
     });
+
+    this.toastr.toastrConfig.progressBar = true;
+    this.toastr.toastrConfig.progressAnimation = 'decreasing';
     this.service.notifyTriggered
       .subscribe(notification => {
         switch (notification.type) {
