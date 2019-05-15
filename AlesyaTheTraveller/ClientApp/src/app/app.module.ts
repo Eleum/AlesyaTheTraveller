@@ -29,8 +29,7 @@ registerLocaleData(localeRu);
     FetchDataComponent,
     FlightDataComponent,
     HotelDataComponent,
-    NumberToArrayPipe,
-    BrowserAnimationsModule    
+    NumberToArrayPipe
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -43,6 +42,7 @@ registerLocaleData(localeRu);
       { path: 'flight-data', component: FlightDataComponent },
       { path: 'hotel-data', component: HotelDataComponent }
     ]),
+    BrowserAnimationsModule,
     ToastrModule.forRoot()
   ],
   providers: [

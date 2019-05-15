@@ -254,8 +254,8 @@ namespace AlesyaTheTraveller.Extensions
                     }
                     break;
                 case "Travelling":
-                    var hotels = RunHotelSearch(intentParams["--destination"], intentParams["outboundDate"]);
-                    var flights = RunFlightSearch(intentParams);
+                    var hotels = RunHotelSearch(intentParams["--destination"], intentParams["outboundDate"], _context);
+                    var flights = RunFlightSearch(intentParams, _context);
 
                     await Task.WhenAny(flights, hotels);
 

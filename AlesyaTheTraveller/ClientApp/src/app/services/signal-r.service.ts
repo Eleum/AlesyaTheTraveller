@@ -204,7 +204,6 @@ export class SignalRService {
       this.storedHotelData = null;
 
       if (type == 0) {
-        debugger;
         if (rootObj == null || rootObj.length == 0) {
           this.sayVoiceMessageHandler("К сожалению, не удалось получить рейсы по заданному направлению. Повторите попытку позже.");
           return;
