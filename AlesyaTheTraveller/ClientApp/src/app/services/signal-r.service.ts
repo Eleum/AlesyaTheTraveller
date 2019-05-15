@@ -5,7 +5,7 @@ import { Subject } from 'rxjs';
 import * as signalR from '@aspnet/signalr';
 import { FlightData } from '../flight-data/flight-data.model';
 import { HotelData } from '../hotel-data/hotel-data.model';
-import { debug } from 'util';
+import { ToastrService, GlobalConfig } from 'ngx-toastr';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +16,7 @@ export class SignalRService {
   private audioCtx: AudioContext;
   private storedFlightData: FlightData[];
   private storedHotelData: HotelData[];
+  private toastrConfig: GlobalConfig;
 
   private isHotelsVoiceLineSaid = false;
   private destinationCity: string;
@@ -37,7 +38,7 @@ export class SignalRService {
     return btoa(String.fromCharCode.apply(null, new Uint8Array(buf.buffer)));
   }
 
-  constructor(private router: Router, private http: HttpClient) {
+  constructor(private router: Router, private http: HttpClient, private toastr: ToastrService) {
     this.startConnection();
     this.stopVoiceStreamListener();
     this.broadcastMessageRuEngListener();
@@ -46,6 +47,8 @@ export class SignalRService {
     this.switchItemListener();
     this.fetchDataListener();
     this.sortDataListener();
+    this.notifyListener();
+    this.initializeToastrConfig();
   }
 
   startConnection() {
@@ -267,6 +270,40 @@ export class SignalRService {
     this.hubConnection.on("Notify", (message, type) => {
       this.notifyTriggered.next({ "message": message, "type": type });
     });
+  }
+
+  public notify(toastr: ToastrService, notification: any) {
+    switch (notification.type) {
+      case 0:
+        // remove all notifications excep for success one
+        toastr.toastrConfig.maxOpened = 1;
+        toastr.success(notification.message, "", { timeOut: 1500 });
+        toastr.toastrConfig.maxOpened = 6;
+        break;
+      case 1:
+        toastr.info(notification.message, "", { timeOut: 3000 });
+        break;
+      case 2:
+        toastr.warning(notification.message);
+        break;
+      case 3:
+        toastr.error(notification.message);
+        break;
+    }
+  }
+
+  private initializeToastrConfig() {
+    this.toastrConfig = this.toastr.toastrConfig;
+    this.toastrConfig.autoDismiss = true;
+    this.toastrConfig.closeButton = false;
+    this.toastrConfig.progressBar = true;
+    this.toastrConfig.resetTimeoutOnDuplicate = true;
+    this.toastrConfig.maxOpened = 6;
+    this.toastrConfig.progressAnimation = 'decreasing';
+  }
+
+  public getToastrConfig() {
+    return this.toastrConfig;
   }
 
   private sortData(type) {

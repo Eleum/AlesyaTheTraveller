@@ -14,10 +14,10 @@ export class HotelDataComponent implements OnInit, AfterViewInit, OnDestroy {
   private hotelData: Observable<HotelData[]>;
   private subscription: Subscription;
 
-  constructor(private service: SignalRService, private toastr: ToastrService) { }
+  constructor(private signalr: SignalRService, private toastr: ToastrService) { }
 
   ngOnInit() {
-    this.hotelData = this.service.hotelDataFetched.asObservable();
+    this.hotelData = this.signalr.hotelDataFetched.asObservable();
     this.subscription = this.hotelData.subscribe(data => {
       if (data != undefined && data.length > 0) {
         this.hotelText = "Вот список мест для проживания. Выбирайте любое."
@@ -27,25 +27,15 @@ export class HotelDataComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.toastr.toastrConfig.progressBar = true;
     this.toastr.toastrConfig.progressAnimation = 'decreasing';
-    this.service.notifyTriggered
+    this.signalr.notifyTriggered
       .subscribe(notification => {
-        switch (notification.type) {
-          case "1":
-            this.toastr.info(notification.message);
-            break;
-          case "2":
-            this.toastr.warning(notification.message);
-            break;
-          case "3":
-            this.toastr.error(notification.message);
-            break;
-        }
+        this.signalr.notify(this.toastr, notification);
       });
   }
 
   ngAfterViewInit() {
     setTimeout(() => {
-      this.service.fetchData(1);
+      this.signalr.fetchData(1);
     });
   }
 
@@ -54,7 +44,7 @@ export class HotelDataComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   startRecording() {
-    this.service.startRecording();
+    this.signalr.startRecording();
   }
 
   getHotelClass(hotel: HotelData) {

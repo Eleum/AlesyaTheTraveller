@@ -62,12 +62,11 @@ namespace AlesyaTheTraveller.Extensions
 
         public async Task<object> Recognize(CancellationToken token)
         {
-            //var englishAlternative = input;//"tickets from minsk to kaliningrad the next week";
-            //await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"ENG - {englishAlternative}");
-
+            //Debug.WriteLine("METHOD STARTED");
+            //var englishAlternative = await TranslateMessageAsync("билеты из Минска в Санкт-Петербург на 25 мая");
             //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
 
-            //var intent = await proc.GetMessageIntentAsync(englishAlternative); //("tickets from Minsk to Paris");
+            //var intent = await proc.GetMessageIntentAsync(englishAlternative);
             //var intentParams = await proc.ParseIntent(intent);
 
             //await ProcessIntentParams(intentParams);
@@ -178,20 +177,10 @@ namespace AlesyaTheTraveller.Extensions
 
                             var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
 
-                            var intent = await proc.GetMessageIntentAsync(englishAlternative); //("tickets from Minsk to Paris");
+                            var intent = await proc.GetMessageIntentAsync(englishAlternative);
                             var intentParams = await proc.ParseIntent(intent);
 
                             await ProcessIntentParams(intentParams);
-
-                            //var tasks = new List<Task>
-                            //{
-                            //    _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}"),
-                            //    _context.Clients.All.SendAsync("BroadcastIntent", $"{intent}"),
-                            //    _context.Clients.All.SendAsync("SayVoiceMessage", $"{alternative.Text}"),
-                            //};
-
-                            //await Task.WhenAll(tasks);
-
                             break;
                         }
                     }
@@ -279,21 +268,36 @@ namespace AlesyaTheTraveller.Extensions
         /// <returns></returns>
         private async Task RunFlightSearch(Dictionary<string, string> param, IHubContext<VoiceStreamingHub> context)
         {
-            param.Remove("--destination");
-
             List<FlightData> flights = null;
+
+            param.Remove("--destination");
 
             try
             {
-                var sessionId = await _flightData.CreateSession(param);
-                flights = await _flightData.PollSessionResults(sessionId)
-                    .ContinueWith((x) => _flightData.FormFlightData(x.Result),
-                    TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+                var tries = 3;
+                while (tries > 0)
+                {
+                    await context.Clients.All.SendAsync("Notify", $"Попытка найти рейсы #{-tries+4}", 1);
+
+                    var sessionId = await _flightData.CreateSession(param);
+                    if(sessionId == null)
+                    {
+                        tries--;
+                        continue;
+                    }
+
+                    flights = await _flightData.PollSessionResults(sessionId)
+                        .ContinueWith((x) => _flightData.FormFlightData(x.Result),
+                        TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+                    break;
+                }
             }
             catch(Exception e)
             {
                 await context.Clients.All.SendAsync("Notify", $"{e.Message}\n{e.InnerException?.Message}", 3);
             }
+
+            await context.Clients.All.SendAsync("Notify", $"Данные {(flights == null ? "не " : "")}получены!", flights == null ? 2 : 0);
             await _context.Clients.All.SendAsync("FetchData", flights, FetchType.Flight);
         }
 
@@ -313,21 +317,27 @@ namespace AlesyaTheTraveller.Extensions
 
             HotelData[] hotelData = null;
 
-            try
+            if (destinationId != null)
             {
-                if (destinationId != null)
+                var tries = 5;
+                while (tries > 0)
                 {
-                    hotelData = await _flightData.GetHotelData(destinationId.Value, 
-                        DateTime.ParseExact(outboundDate, "yyyy-MM-dd", null));
-                }
-                else
-                {
-                    Debug.WriteLine("NULL");
-                }
-            }
-            catch(Exception e)
-            {
+                    try
+                    {
+                        hotelData = await _flightData.GetHotelData(destinationId.Value,
+                            DateTime.ParseExact(outboundDate, "yyyy-MM-dd", null));
 
+                        if (hotelData == null)
+                        {
+                            tries--;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        await context.Clients.All.SendAsync("Notify", $"{e.Message}\n{e.InnerException?.Message}", 3);
+                        tries--;
+                    }
+                }
             }
 
             await _context.Clients.All.SendAsync("FetchData", hotelData, FetchType.Hotel);

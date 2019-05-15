@@ -127,6 +127,12 @@ namespace AlesyaTheTraveller.Extensions
                 {
                     entity.Value = string.Join(" ", parts.Take(parts.Length-1));
                 }
+
+                // a change for not parsable 'st . '
+                if(entity.Value.Contains("st . "))
+                {
+                    entity.Value = entity.Value.Replace("st .", "saint");
+                }
             }
 
             var intentParams = new Dictionary<string, string>();

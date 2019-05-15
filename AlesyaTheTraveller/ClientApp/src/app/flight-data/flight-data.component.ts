@@ -14,11 +14,11 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
   private flightData: Observable<FlightData[]>;
   private subscription: Subscription;
 
-  constructor(private service: SignalRService, private toastr: ToastrService) { }
+  constructor(private signalr: SignalRService, private toastr: ToastrService) { }
 
   ngOnInit() {
-    this.service
-    this.flightData = this.service.flightDataFetched.asObservable();
+    this.toastr.toastrConfig = this.signalr.getToastrConfig();
+    this.flightData = this.signalr.flightDataFetched.asObservable();
     this.subscription = this.flightData.subscribe(data => {
       if (data != undefined) {
         this.flightText = "Вот какие есть рейсы по выбранному Вами направлению";
@@ -26,27 +26,15 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log(data);
     });
 
-    this.toastr.toastrConfig.progressBar = true;
-    this.toastr.toastrConfig.progressAnimation = 'decreasing';
-    this.service.notifyTriggered
+    this.signalr.notifyTriggered
       .subscribe(notification => {
-        switch (notification.type) {
-          case "1":
-            this.toastr.info(notification.message);
-            break;
-          case "2":
-            this.toastr.warning(notification.message);
-            break;
-          case "3":
-            this.toastr.error(notification.message);
-            break;
-        }
+        this.signalr.notify(this.toastr, notification);
       });
   }
 
   ngAfterViewInit() {
     setTimeout(() => {
-      this.service.fetchData(0);
+      this.signalr.fetchData(0);
     });
   }
 
@@ -55,10 +43,10 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   startRecording() {
-    this.service.startRecording();
+    this.signalr.startRecording();
   }
 
   fetch() {
-    this.service.fetchData(0);
+    this.signalr.fetchData(0);
   }
 }

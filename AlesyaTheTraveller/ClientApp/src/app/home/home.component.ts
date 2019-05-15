@@ -12,42 +12,29 @@ export class HomeComponent implements OnInit {
   private message = "";
   private intent = "";
 
-  constructor(private service: SignalRService, private toastr: ToastrService) { }
+  constructor(private signalr: SignalRService, private toastr: ToastrService) { }
 
   ngOnInit() {
     // subscribe to update UI with message on new messages from server [TEST]
-    this.service.newMessageReceived
+    this.signalr.newMessageReceived
       .subscribe((message) => {
         this.message = message;
       });
 
     // subscribe to update UI with intent on new intents from server [TEST]
-    this.service.newIntentReceived
+    this.signalr.newIntentReceived
       .subscribe((intent) => {
         this.intent = intent;
       });
 
-    this.toastr.toastrConfig.progressBar = true;
-    this.toastr.toastrConfig.tapToDismiss
-    this.toastr.toastrConfig.progressAnimation = 'decreasing';
-    this.service.notifyTriggered
+    this.signalr.notifyTriggered
       .subscribe(notification => {
-        switch (notification.type) {
-          case "1":
-            this.toastr.info(notification.message);
-            break;
-          case "2":
-            this.toastr.warning(notification.message);
-            break;
-          case "3":
-            this.toastr.error(notification.message);
-            break;
-        }
+        this.signalr.notify(this.toastr, notification);
       });
   }
 
   startRecording() {
-    this.service.startRecording();
+    this.signalr.startRecording();
   }
 
   fillInput(message: string) {
