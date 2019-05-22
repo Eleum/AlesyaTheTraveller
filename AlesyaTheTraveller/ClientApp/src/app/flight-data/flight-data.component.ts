@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, AfterContentInit, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { SignalRService } from '../services/signal-r.service';
 import { Observable, Subscription } from 'rxjs';
 import { FlightData } from './flight-data.model';

@@ -26,7 +26,6 @@ namespace AlesyaTheTraveller.Services
 
         public GlobalPointEntity GetLocation(string query)
         {
-            var a = _cache.Where(x => x.Value.NameTranslations.En.ToLower() == query.ToLower());
             return _cache
                 .Where(x => x.Value.NameTranslations.En.ToLower() == query.ToLower())
                 .FirstOrDefault()

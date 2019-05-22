@@ -30,11 +30,11 @@ namespace AlesyaTheTraveller.Entities
 
     public class Entity
     {
-        [JsonProperty("entity")]
-        public string Value { get; set; }
-
         [JsonProperty("type")]
         public string Type { get; set; }
+
+        [JsonProperty("entity")]
+        public string Value { get; set; }
 
         [JsonProperty("startIndex", NullValueHandling = NullValueHandling.Ignore)]
         public int StartIndex { get; set; }
@@ -59,7 +59,7 @@ namespace AlesyaTheTraveller.Entities
     public class ResolutionData
     {
         [JsonProperty("timex", NullValueHandling = NullValueHandling.Ignore)]
-        public string TimeX{ get; set; }
+        public string TimeX { get; set; }
 
         [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
         public string Type { get; set; }

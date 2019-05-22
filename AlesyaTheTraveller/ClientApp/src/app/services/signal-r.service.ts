@@ -11,7 +11,7 @@ import { ToastrService, GlobalConfig } from 'ngx-toastr';
   providedIn: 'root'
 })
 export class SignalRService {
-  private hubConnection: signalR.HubConnection
+  private hubConnection: signalR.HubConnection;
   private stream: MediaStream;
   private audioCtx: AudioContext;
   private storedFlightData: FlightData[];
@@ -31,7 +31,7 @@ export class SignalRService {
 
   covertFloat32ToUInt8(buffer: Float32Array) {
     let l = buffer.length;
-    let buf = new Int16Array(l);
+    const buf = new Int16Array(l);
     while (l--) {
       buf[l] = Math.min(1, buffer[l]) * 0x7FFF;
     }
@@ -71,7 +71,7 @@ export class SignalRService {
     this.stopVoiceStream();
   }
 
-  startVoiceStream() {
+  private startVoiceStream() {
     this.hubConnection.send("StartRecognition")
       .catch(err => console.log("server Recognition() error: " + err));
 
@@ -99,7 +99,7 @@ export class SignalRService {
       })
   }
 
-  stopVoiceStream() {
+  private stopVoiceStream() {
     try {
       let stream = this.stream;
       stream.getAudioTracks().forEach(track => track.stop());

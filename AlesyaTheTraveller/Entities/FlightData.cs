@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace AlesyaTheTraveller.Entities
 {
-    public class FlightData
+    public sealed class FlightData
     {
         public Uri CarrierImageUri { get; set; }
 

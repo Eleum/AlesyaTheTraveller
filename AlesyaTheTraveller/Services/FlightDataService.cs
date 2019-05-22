@@ -61,49 +61,6 @@ namespace AlesyaTheTraveller.Services
             return null;
         }
 
-        public async Task<GlobalPointEntity[]> GetData(PointType type)
-        {
-            var url = "http://api.travelpayouts.com/data/ru/" + 
-                (type == PointType.Country 
-                    ? "countries.json" 
-                    : "cities.json");
-
-            var client = new HttpClient();
-            var response = await client.GetAsync(url);
-
-            if(!response.IsSuccessStatusCode)
-            { 
-                return null;
-            }
-
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<GlobalPointEntity[]>(json);
-        }
-
-        public async Task<PlaceEntity[]> GetPlacesList(string query)
-        {
-            _client = new HttpClient();
-            _client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:Host"]);
-            _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
-
-            var uri = _config["RapidApi:FlightUrl"] + _config["RapidApi:PlaceSearch"] + _config["RapidApi:Version"] + 
-                _config["RapidApi:LocaleSettings"] + "?query=" + query.Replace(" ", "+");
-
-            // because it doesn't work for russian language...
-            if (query.Contains("petersburg"))
-                uri = uri.Replace("ru-RU", "en-US");
-
-            var response = await _client.GetAsync(uri);
-
-            if(!response.IsSuccessStatusCode)
-            {
-                // error
-            }
-
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<Places>(json).Entities;
-        }
-
         public async Task<RootObject> PollSessionResults(string sessionId)
         {
             _client = new HttpClient();
@@ -149,6 +106,49 @@ namespace AlesyaTheTraveller.Services
             }
 
             return itineraries;
+        }
+
+        public async Task<GlobalPointEntity[]> GetData(PointType type)
+        {
+            var url = "http://api.travelpayouts.com/data/ru/" +
+                (type == PointType.Country
+                    ? "countries.json"
+                    : "cities.json");
+
+            var client = new HttpClient();
+            var response = await client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<GlobalPointEntity[]>(json);
+        }
+
+        public async Task<PlaceEntity[]> GetPlacesList(string query)
+        {
+            _client = new HttpClient();
+            _client.DefaultRequestHeaders.Add("X-RapidAPI-Host", _config["RapidApi:Host"]);
+            _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
+
+            var uri = _config["RapidApi:FlightUrl"] + _config["RapidApi:PlaceSearch"] + _config["RapidApi:Version"] +
+                _config["RapidApi:LocaleSettings"] + "?query=" + query.Replace(" ", "+");
+
+            // because it doesn't work for russian language...
+            if (query.Contains("petersburg"))
+                uri = uri.Replace("ru-RU", "en-US");
+
+            var response = await _client.GetAsync(uri);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // error
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<Places>(json).Entities;
         }
 
         public async Task<LocationEntity[]> GetLocations(string query)
