@@ -13,6 +13,7 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
   private flightText: string;
   private flightData: Observable<FlightData[]>;
   private subscription: Subscription;
+  private notifySubscription: Subscription;
 
   constructor(private signalr: SignalRService, private toastr: ToastrService) { }
 
@@ -26,20 +27,21 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log(data);
     });
 
-    this.signalr.notifyTriggered
-      .subscribe(notification => {
-        this.signalr.notify(this.toastr, notification);
-      });
+    this.notifySubscription = this.signalr.notifyTriggered.subscribe(notification => {
+      this.signalr.notify(this.toastr, notification);
+    });
   }
 
   ngAfterViewInit() {
     setTimeout(() => {
+      debugger;
       this.signalr.fetchData(0);
     });
   }
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+    this.notifySubscription.unsubscribe();
   }
 
   startRecording() {

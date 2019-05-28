@@ -12,6 +12,7 @@ import { ToastrService, GlobalConfig } from 'ngx-toastr';
 })
 export class SignalRService {
   private hubConnection: signalR.HubConnection;
+  private audio: HTMLAudioElement;
   private stream: MediaStream;
   private audioCtx: AudioContext;
   private storedFlightData: FlightData[];
@@ -49,6 +50,9 @@ export class SignalRService {
     this.sortDataListener();
     this.notifyListener();
     this.initializeToastrConfig();
+    debugger;
+    console.log(this.storedFlightData);
+    console.log(this.storedHotelData);
   }
 
   startConnection() {
@@ -74,6 +78,11 @@ export class SignalRService {
   private startVoiceStream() {
     this.hubConnection.send("StartRecognition")
       .catch(err => console.log("server Recognition() error: " + err));
+
+    if (this.audio != undefined) {
+      this.audio.pause();
+      this.audio.currentTime = 0;
+    }
 
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
@@ -136,9 +145,9 @@ export class SignalRService {
         let blob = new Blob([byteArray], { type: response.contentType });
         let url = URL.createObjectURL(blob);
 
-        let audio = new Audio();
-        audio.src = url;
-        let playPromise = audio.play();
+        this.audio = new Audio();
+        this.audio.src = url;
+        let playPromise = this.audio.play();
 
         // only Chrome(?) supports play promise
         if (playPromise !== undefined) {
@@ -203,7 +212,6 @@ export class SignalRService {
 
   public fetchDataListener = () => {
     this.hubConnection.on("FetchData", (rootObj, type) => {
-      debugger;
       this.storedFlightData = null;
       this.storedHotelData = null;
 
@@ -269,6 +277,7 @@ export class SignalRService {
 
   public notifyListener = () => {
     this.hubConnection.on("Notify", (message, type) => {
+      console.log("NOTIFY WITH: " + message);
       this.notifyTriggered.next({ "message": message, "type": type });
     });
   }
@@ -276,7 +285,7 @@ export class SignalRService {
   public notify(toastr: ToastrService, notification: any) {
     switch (notification.type) {
       case 0:
-        // remove all notifications excep for success one
+        // remove all notifications except for success one
         toastr.toastrConfig.maxOpened = 1;
         toastr.success(notification.message, "", { timeOut: 1500 });
         toastr.toastrConfig.maxOpened = 6;

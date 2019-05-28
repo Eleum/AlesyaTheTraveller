@@ -13,6 +13,7 @@ export class HotelDataComponent implements OnInit, AfterViewInit, OnDestroy {
   private hotelText: string;
   private hotelData: Observable<HotelData[]>;
   private subscription: Subscription;
+  private notifySubscription: Subscription;
 
   constructor(private signalr: SignalRService, private toastr: ToastrService) { }
 
@@ -25,12 +26,11 @@ export class HotelDataComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log(data);
     });
 
-    this.toastr.toastrConfig.progressBar = true;
-    this.toastr.toastrConfig.progressAnimation = 'decreasing';
-    this.signalr.notifyTriggered
-      .subscribe(notification => {
-        this.signalr.notify(this.toastr, notification);
-      });
+    //this.toastr.toastrConfig.progressBar = true;
+    //this.toastr.toastrConfig.progressAnimation = 'decreasing';
+    this.notifySubscription = this.signalr.notifyTriggered.subscribe(notification => {
+      this.signalr.notify(this.toastr, notification);
+    });
   }
 
   ngAfterViewInit() {
@@ -41,6 +41,7 @@ export class HotelDataComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+    this.notifySubscription.unsubscribe();
   }
 
   startRecording() {

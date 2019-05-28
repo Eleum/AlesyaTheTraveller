@@ -169,7 +169,7 @@ namespace AlesyaTheTraveller.Extensions
                 var itemInUse = intent.Entities.FirstOrDefault(x => x.Type == "item");
                 if (itemInUse != null && itemInUse.Value.Contains("hotel"))
                 {
-                    var destination = intent.Entities.FirstOrDefault(x => x.Type == "Places.DestinationAddress");
+                    var destination = intent.Entities.FirstOrDefault(x => x.Type == "placeDestinationAddress");
                     if (destination != null)
                     {
                         intentParams.Add("--destination", destination.Value);
@@ -183,7 +183,7 @@ namespace AlesyaTheTraveller.Extensions
                 intentParams.Add("locale", "ru-RU");
                 intentParams.Add("adult", "1");
 
-                var destinationCount = intent.Entities.Count(x => x.Type == "Places.DestinationAddress");
+                var destinationCount = intent.Entities.Count(x => x.Type == "placeDestinationAddress");
                 if (destinationCount == 0)
                 {
                     return null;
@@ -193,7 +193,7 @@ namespace AlesyaTheTraveller.Extensions
 
                 if (destinationCount == 1)
                 {
-                    var destination = intent.Entities.First(x => x.Type == "Places.DestinationAddress");
+                    var destination = intent.Entities.First(x => x.Type == "placeDestinationAddress");
                     if (!placeQualifiers.Any())
                     {
                         intentParams.Add("destinationPlace", _cache.GetLocation(destination.Value).Code + "-sky");
@@ -208,7 +208,7 @@ namespace AlesyaTheTraveller.Extensions
                     if (!intent.Entities.Any(x => x.Type == "placeQualifier"))
                     {
                         var first = false;
-                        foreach(var destination in intent.Entities.Where(x => x.Type == "Places.DestinationAddress"))
+                        foreach(var destination in intent.Entities.Where(x => x.Type == "placeDestinationAddress"))
                         {
                             CheckDestinationConsistency(destination);
                             first = !first;
@@ -241,7 +241,7 @@ namespace AlesyaTheTraveller.Extensions
                         foreach (var item in placeQualifiers)
                         {
                             // if this place qualifier is before destination address in intent string
-                            if (intent.Entities.Any(x => x.StartIndex == item.EndIndex + 2 && x.Type == "Places.DestinationAddress"))
+                            if (intent.Entities.Any(x => x.StartIndex == item.EndIndex + 2 && x.Type == "placeDestinationAddress"))
                             {
                                 validPqs.Add(
                                     item.EndIndex,
@@ -261,7 +261,7 @@ namespace AlesyaTheTraveller.Extensions
                             else
                             {
                                 var queryEntity = intent.Entities
-                                    .Where(x => x.StartIndex == item.Key + 2 && x.Type == "Places.DestinationAddress")
+                                    .Where(x => x.StartIndex == item.Key + 2 && x.Type == "placeDestinationAddress")
                                     .First();
 
                                 CheckDestinationConsistency(queryEntity);

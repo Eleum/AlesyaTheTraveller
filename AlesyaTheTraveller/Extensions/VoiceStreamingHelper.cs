@@ -63,15 +63,15 @@ namespace AlesyaTheTraveller.Extensions
         public async Task<object> Recognize(CancellationToken token, string message = "")
         {
             //Debug.WriteLine("METHOD STARTED");
-            var englishAlternative = await TranslateMessageAsync(message);
-            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
+            //var englishAlternative = await TranslateMessageAsync(message);
+            //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
 
-            var intent = await proc.GetMessageIntentAsync(englishAlternative);
-            var intentParams = await proc.ParseIntent(intent);
+            //var intent = await proc.GetMessageIntentAsync(englishAlternative);
+            //var intentParams = await proc.ParseIntent(intent);
 
-            await ProcessIntentParams(intentParams);
+            //await ProcessIntentParams(intentParams);
 
-            return null;
+            //return null;
 
             var spec = new RecognitionSpec
             {
@@ -171,14 +171,14 @@ namespace AlesyaTheTraveller.Extensions
                         {
                             // or use foreach (var alternative in chunk.Alternatives)
 
-                            //var alternative = chunk.Alternatives.First();
-                            //var englishAlternative = await TranslateMessageAsync(alternative.Text);
-                            //await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}");
+                            var alternative = chunk.Alternatives.First();
+                            var englishAlternative = await TranslateMessageAsync(alternative.Text);
+                            await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}");
 
-                            //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
+                            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
 
-                            //var intent = await proc.GetMessageIntentAsync(englishAlternative);
-                            //var intentParams = await proc.ParseIntent(intent);
+                            var intent = await proc.GetMessageIntentAsync(englishAlternative);
+                            var intentParams = await proc.ParseIntent(intent);
 
                             await ProcessIntentParams(intentParams);
                             break;
@@ -326,6 +326,8 @@ namespace AlesyaTheTraveller.Extensions
         /// <returns></returns>
         private async Task RunHotelSearch(string destination, string outboundDate, IHubContext<VoiceStreamingHub> context)
         {
+            await context.Clients.All.SendAsync("Notify", $"Начался поиск отелей", 1);
+
             var locations = await _flightData.GetLocations(destination);
 
             // negative values are ok
@@ -340,6 +342,8 @@ namespace AlesyaTheTraveller.Extensions
                 {
                     try
                     {
+                        await context.Clients.All.SendAsync("Notify", $"Попытка найти отели #{-tries + 6}", 1);
+
                         hotelData = await _flightData.GetHotelData(destinationId.Value,
                             DateTime.ParseExact(outboundDate, "yyyy-MM-dd", null));
 
@@ -360,6 +364,7 @@ namespace AlesyaTheTraveller.Extensions
                 }
             }
 
+            await context.Clients.All.SendAsync("Notify", $"Данные {(hotelData == null ? "не " : "")}получены!", hotelData == null ? 2 : 0);
             await _context.Clients.All.SendAsync("FetchData", hotelData, FetchType.Hotel);
         }
     }

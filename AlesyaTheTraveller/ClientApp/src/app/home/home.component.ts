@@ -1,16 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { SignalRService } from '../services/signal-r.service';
-import { ToastrService, GlobalConfig } from 'ngx-toastr';
+import { ToastrService } from 'ngx-toastr';
+import { Subscription } from 'rxjs';
 
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   private input = "";
   private message = "";
   private intent = "";
+  private notifySubscription: Subscription;
 
   constructor(private signalr: SignalRService, private toastr: ToastrService) { }
 
@@ -27,11 +29,15 @@ export class HomeComponent implements OnInit {
         this.intent = intent;
       });
 
-    this.signalr.notifyTriggered
-      .subscribe(notification => {
-        this.signalr.notify(this.toastr, notification);
-      });
+    this.notifySubscription = this.signalr.notifyTriggered.subscribe(notification => {
+      this.signalr.notify(this.toastr, notification);
+    });
   }
+
+  ngOnDestroy() {
+    this.notifySubscription.unsubscribe();
+  }
+
 
   startRecording() {
     this.signalr.startRecording();
