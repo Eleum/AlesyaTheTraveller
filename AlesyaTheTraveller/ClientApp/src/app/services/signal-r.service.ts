@@ -151,7 +151,7 @@ export class SignalRService {
           });
         }
       }, err => {
-        console.error(err)
+        console.error(err);
       });
   }
 
@@ -203,6 +203,7 @@ export class SignalRService {
 
   public fetchDataListener = () => {
     this.hubConnection.on("FetchData", (rootObj, type) => {
+      debugger;
       this.storedFlightData = null;
       this.storedHotelData = null;
 
@@ -371,5 +372,9 @@ export class SignalRService {
       }
     }
     
+  }
+
+  public sendMessage(mes: string) {
+    this.hubConnection.invoke("StartRecognition1", mes);
   }
 }

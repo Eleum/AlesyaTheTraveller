@@ -40,6 +40,7 @@
 
   <ItemGroup>
     <Compile Remove="Controllers\SampleDataController.cs" />
+    <Compile Remove="Services\ScopedProcessingService.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -21,6 +21,11 @@ namespace AlesyaTheTraveller.Entities
             await Task.Run(() => helper.Recognize(helper.CancellationTokenSource.Token).ConfigureAwait(false));
         }
 
+        public async Task StartRecognition1(string message)
+        {
+            await Task.Run(() => helper.Recognize(helper.CancellationTokenSource.Token, message).ConfigureAwait(false));
+        }
+
         public void ProcessVoiceStream(string base64Array)
         {
             var buffer = Convert.FromBase64String(base64Array);

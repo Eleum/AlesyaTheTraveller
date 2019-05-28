@@ -148,13 +148,13 @@ namespace AlesyaTheTraveller.Extensions
 
             var intentType = intent.TopScoringIntent.Intent;
             intentParams.Add("--type", intentType);
+            intentParams.Add("--searchType", "both");
+            intentParams.Add("outboundDate", GetOutboundDate(intent));
 
             if (intentType == "Interaction")
             {
                 var sortType = intent.Entities.FirstOrDefault(x => x.Type == "builtin.number")?.Value;
-
-                //TODO: change to get 'action' entity
-                if (!string.IsNullOrEmpty(sortType))
+                if (!string.IsNullOrEmpty(sortType))    
                 {
                     intentParams.Add("number", sortType);
                 }
@@ -166,11 +166,22 @@ namespace AlesyaTheTraveller.Extensions
             }
             else if (intentType == "Travelling")
             {
+                var itemInUse = intent.Entities.FirstOrDefault(x => x.Type == "item");
+                if (itemInUse != null && itemInUse.Value.Contains("hotel"))
+                {
+                    var destination = intent.Entities.FirstOrDefault(x => x.Type == "Places.DestinationAddress");
+                    if (destination != null)
+                    {
+                        intentParams.Add("--destination", destination.Value);
+                        intentParams["--searchType"] = "hotels";
+                        return intentParams;
+                    }
+                }
+
                 intentParams.Add("country", "BY");
                 intentParams.Add("currency", "BYN");
                 intentParams.Add("locale", "ru-RU");
                 intentParams.Add("adult", "1");
-                intentParams.Add("outboundDate", GetOutboundDate(intent));
 
                 var destinationCount = intent.Entities.Count(x => x.Type == "Places.DestinationAddress");
                 if (destinationCount == 0)

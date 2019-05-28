@@ -60,18 +60,18 @@ namespace AlesyaTheTraveller.Extensions
             CancellationTokenSource = new CancellationTokenSource();
         }
 
-        public async Task<object> Recognize(CancellationToken token)
+        public async Task<object> Recognize(CancellationToken token, string message = "")
         {
             //Debug.WriteLine("METHOD STARTED");
-            //var englishAlternative = await TranslateMessageAsync("билеты из Минска в Санкт-Петербург на 25 мая");
-            //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
+            var englishAlternative = await TranslateMessageAsync(message);
+            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
 
-            //var intent = await proc.GetMessageIntentAsync(englishAlternative);
-            //var intentParams = await proc.ParseIntent(intent);
+            var intent = await proc.GetMessageIntentAsync(englishAlternative);
+            var intentParams = await proc.ParseIntent(intent);
 
-            //await ProcessIntentParams(intentParams);
+            await ProcessIntentParams(intentParams);
 
-            //return null;
+            return null;
 
             var spec = new RecognitionSpec
             {
@@ -171,14 +171,14 @@ namespace AlesyaTheTraveller.Extensions
                         {
                             // or use foreach (var alternative in chunk.Alternatives)
 
-                            var alternative = chunk.Alternatives.First();
-                            var englishAlternative = await TranslateMessageAsync(alternative.Text);
-                            await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}");
+                            //var alternative = chunk.Alternatives.First();
+                            //var englishAlternative = await TranslateMessageAsync(alternative.Text);
+                            //await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}");
 
-                            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
+                            //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
 
-                            var intent = await proc.GetMessageIntentAsync(englishAlternative);
-                            var intentParams = await proc.ParseIntent(intent);
+                            //var intent = await proc.GetMessageIntentAsync(englishAlternative);
+                            //var intentParams = await proc.ParseIntent(intent);
 
                             await ProcessIntentParams(intentParams);
                             break;
@@ -222,8 +222,17 @@ namespace AlesyaTheTraveller.Extensions
             {
                 ApiKey = TRANSLATE_API_KEY
             };
+            string a = "";
+            try
+            {
+                a = await translator.TranslateText(message, "ru-en");
+            }
+            catch(Exception e)
+            {
 
-            return await translator.TranslateText(message, "ru-en");
+            }
+            
+            return a;
         }
 
         private async Task ProcessIntentParams(Dictionary<string, string> intentParams)
@@ -244,8 +253,15 @@ namespace AlesyaTheTraveller.Extensions
                     break;
                 case "Travelling":
                     var hotels = RunHotelSearch(intentParams["--destination"], intentParams["outboundDate"], _context);
+                    if (intentParams.GetAndRemove("--searchType") == "hotels")
+                    {
+                        // switch to hotel-data component in client app
+                        await hotels;
+                        await _context.Clients.All.SendAsync("SwitchToItem", "hotel");
+                        break;
+                    }
+                        
                     var flights = RunFlightSearch(intentParams, _context);
-
                     await Task.WhenAny(flights, hotels);
 
                     // switch to flight-data component in client app
@@ -330,6 +346,10 @@ namespace AlesyaTheTraveller.Extensions
                         if (hotelData == null)
                         {
                             tries--;
+                        }
+                        else
+                        {
+                            break;
                         }
                     }
                     catch (Exception e)
