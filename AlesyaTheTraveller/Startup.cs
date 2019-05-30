@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using AlesyaTheTraveller.Entities;
 using AlesyaTheTraveller.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace AlesyaTheTraveller
 {
@@ -29,6 +30,7 @@ namespace AlesyaTheTraveller
             services.AddSingleton<IFlightDataCacheService, FlightDataCacheService>();
             services.AddSingleton(Configuration);
 
+            services.AddDbContext<UtterancesContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddSignalR();
             services.AddCors(options =>
             {

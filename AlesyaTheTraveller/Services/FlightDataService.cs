@@ -24,7 +24,7 @@ namespace AlesyaTheTraveller.Services
     
     public class FlightDataService : IFlightDataService
     {
-        private IConfiguration _config;
+        private readonly IConfiguration _config;
         private HttpClient _client;
 
         public FlightDataService(IConfiguration config)
@@ -53,12 +53,9 @@ namespace AlesyaTheTraveller.Services
                 }
                 else
                 {
-                    var a = response.Content.ReadAsStringAsync();
-                    // errorka
+                    throw new Exception(await response.Content.ReadAsStringAsync());
                 }
             }
-
-            return null;
         }
 
         public async Task<RootObject> PollSessionResults(string sessionId)

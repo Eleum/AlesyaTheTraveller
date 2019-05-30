@@ -62,17 +62,6 @@ namespace AlesyaTheTraveller.Extensions
 
         public async Task<object> Recognize(CancellationToken token, string message = "")
         {
-            //Debug.WriteLine("METHOD STARTED");
-            //var englishAlternative = await TranslateMessageAsync(message);
-            //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
-
-            //var intent = await proc.GetMessageIntentAsync(englishAlternative);
-            //var intentParams = await proc.ParseIntent(intent);
-
-            //await ProcessIntentParams(intentParams);
-
-            //return null;
-
             var spec = new RecognitionSpec
             {
                 LanguageCode = "ru-RU",
