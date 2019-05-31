@@ -1,9 +1,8 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, DebugElement } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { SignalRService } from '../services/signal-r.service';
 import { Observable, Subscription } from 'rxjs';
 import { FlightData } from './flight-data.model';
 import { ToastrService } from 'ngx-toastr';
-import { debug } from 'util';
 
 @Component({
   selector: 'app-flight-data',
@@ -15,6 +14,7 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
   private flightData: Observable<FlightData[]>;
   private subscription: Subscription;
   private notifySubscription: Subscription;
+  private fd: FlightData[];
 
   constructor(private signalr: SignalRService, private toastr: ToastrService) { }
 
@@ -36,6 +36,19 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
     this.notifySubscription = this.signalr.notifyTriggered.subscribe(notification => {
       this.signalr.notify(this.toastr, notification);
     });
+
+    var test =
+    {
+      ImageUri: 'https://s1.apideeplink.com/images/airlines/B2.png',
+      Departure: new Date(2019, 5, 1),
+      Arrival: new Date(2019, 5, 5),
+      Origin: 'МИНСК ИНТЕРНЭШНЛ 2',
+      Destination: 'ФРАНКФУРТ-НА-МАЙНЕ',
+      Cost: 1545.94,
+      Stops: 1,
+      TicketSellerUri: ''
+    };
+    this.fd = [test];
   }
 
   ngAfterViewInit() {

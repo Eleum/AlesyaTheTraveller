@@ -65,18 +65,24 @@
   left: 0;
 }
 
-.margined-border:after {
-  right: 0;
-}
-
-@media (max-width: 500px) {
-  .inline-info {
-    display: inline;
-    margin-right: 0.5em;
+@media (min-width: 768px) {
+  .margined-border:after {
+    right: 0;
+  }
+  .border-bottom {
+    border-bottom: 0px !important;
   }
 }
 
-@media (min-width: 501px) {
-  .inline-info {
+@media (max-width: 767px) {
+  .margined-border:after {
+    display: none;
   }
+  .border-bottom {
+    border-bottom: 1px solid #ededed;
+  }
+}
+
+.f-12 {
+  font-size: 12px;
 }
