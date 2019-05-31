@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, DebugElement } from '@angular/core';
 import { SignalRService } from '../services/signal-r.service';
 import { Observable, Subscription } from 'rxjs';
 import { FlightData } from './flight-data.model';
 import { ToastrService } from 'ngx-toastr';
+import { debug } from 'util';
 
 @Component({
   selector: 'app-flight-data',
@@ -20,12 +21,17 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     this.toastr.toastrConfig = this.signalr.getToastrConfig();
     this.flightData = this.signalr.flightDataFetched.asObservable();
-    this.subscription = this.flightData.subscribe(data => {
-      if (data != undefined) {
-        this.flightText = "Вот какие есть рейсы по выбранному Вами направлению";
+    this.subscription = this.flightData.subscribe(
+      data => {
+        if (data != undefined && data != null) {
+          this.flightText = "Вот какие есть рейсы по выбранному Вами направлению";
+        }
+        console.log(data);
+      },
+      (err) => {
+        debugger;
       }
-      console.log(data);
-    });
+    );
 
     this.notifySubscription = this.signalr.notifyTriggered.subscribe(notification => {
       this.signalr.notify(this.toastr, notification);
@@ -34,9 +40,47 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     setTimeout(() => {
-      debugger;
       this.signalr.fetchData(0);
     });
+
+    setTimeout(() => {
+      let cardbodyElem = document.querySelectorAll('.card-body');
+      let innerDivElem = document.querySelectorAll('.inner-left');
+
+      if (window.innerWidth <= 600) {
+        cardbodyElem.forEach(function (elem) {
+          elem.classList.add('row');
+        });
+        innerDivElem.forEach(function (elem) {
+          elem.classList.add('col-sm-12');
+        });
+      } else {
+        cardbodyElem.forEach(function (elem) {
+          elem.classList.add('row');
+        });
+        innerDivElem.forEach(function (elem) {
+          elem.classList.add('col-sm-12');
+        })
+      }
+
+      window.onresize = function () {
+        if (window.innerWidth <= 600) {
+          cardbodyElem.forEach(function (elem) {
+            elem.classList.add('row');
+          });
+          innerDivElem.forEach(function (elem) {
+            elem.classList.add('col-sm-12');
+          });
+        } else {
+          cardbodyElem.forEach(function (elem) {
+            elem.classList.add('row');
+          });
+          innerDivElem.forEach(function (elem) {
+            elem.classList.add('col-sm-12');
+          })
+        }
+      };
+    }, 1000);
   }
 
   ngOnDestroy() {
@@ -50,5 +94,15 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
 
   fetch() {
     this.signalr.fetchData(0);
+  }
+
+  resizeHandler(cardbodyElem, innerDivElem) {
+    if (window.innerWidth <= 600) {
+      cardbodyElem.classList.add('row');
+      innerDivElem.classList.add('col-sm-12');
+    } else {
+      cardbodyElem.classList.remove('row');
+      innerDivElem.classList.remove('col-sm-12');
+    }
   }
 }

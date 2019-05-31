@@ -19,7 +19,13 @@ export class SignalRService {
   private storedHotelData: HotelData[];
   private toastrConfig: GlobalConfig;
 
+  private messageEnglish: string;
+
+
+  private isFlightsVoiceLineSaid = false;
+  private isNegativeFlightsVoiceLine = false;
   private isHotelsVoiceLineSaid = false;
+  private isNegativeHotelsVoiceLine = false;
   private destinationCity: string;
 
   public newMessageReceived = new Subject<string>();
@@ -50,7 +56,6 @@ export class SignalRService {
     this.sortDataListener();
     this.notifyListener();
     this.initializeToastrConfig();
-    debugger;
     console.log(this.storedFlightData);
     console.log(this.storedHotelData);
   }
@@ -130,9 +135,10 @@ export class SignalRService {
     }
   }
 
-  private sayVoiceMessageHandler(message: string) {
+  private sayVoiceMessageHandler(initialMessage: string, substitution: string = "") {
     var formData = new FormData();
-    formData.append('message', message);
+    formData.append('initialMessage', initialMessage);
+    formData.append('substitution', substitution);
     this.http.post('https://localhost:44389/api/VoiceStreaming', formData)
       .subscribe((response: any) => {
         let byteCharacters = atob(response.response);
@@ -171,7 +177,8 @@ export class SignalRService {
   }
 
   public broadcastMessageRuEngListener = () => {
-    this.hubConnection.on("BroadcastMessageRuEng", (message) => {
+    this.hubConnection.on("BroadcastMessageRuEng", (message: string) => {
+      this.messageEnglish = message.split("|")[1];
       this.newMessageReceived.next(message);
     });
   }
@@ -193,16 +200,28 @@ export class SignalRService {
     this.hubConnection.on("SwitchToItem", (data) => {
       let item = data.toLowerCase();
       if (item.startsWith("flight") || item.startsWith("ticket")) {
+        if (this.router.url == '/flight-data') {
+          this.fetchData(0);
+        }
         this.router.navigateByUrl('/flight-data');
+        if (this.isNegativeFlightsVoiceLine) {
+          this.sayVoiceMessageHandler("К сожалению, не удалось получить рейсы по заданному направлению. Повторите попытку позже.");
+          this.isNegativeFlightsVoiceLine = false;
+        } else if (!this.isFlightsVoiceLineSaid && (this.storedFlightData != undefined && this.storedFlightData.length > 0)) {
+          this.isFlightsVoiceLineSaid = true;
+          this.sayVoiceMessageHandler(this.messageEnglish);
+        }
       } else if (item.startsWith("hotel")) {
+        if (this.router.url == '/hotel-data') {
+          this.fetchData(1);
+        }
         this.router.navigateByUrl('/hotel-data');
-        if (!this.isHotelsVoiceLineSaid) {
-          if (this.storedHotelData == undefined || this.storedHotelData.length == 0) {
-            this.sayVoiceMessageHandler("Отели по запросу не найдены");
-          } else {
-            this.isHotelsVoiceLineSaid = true;
-            this.sayVoiceMessageHandler(`"Вот где можно остановиться в городе ${this.destinationCity}"`);
-          }
+        if (this.isNegativeHotelsVoiceLine) {
+          this.sayVoiceMessageHandler("К сожалению, не удалось получить отели по заданному направлению. Повторите попытку позже.");
+          this.isNegativeHotelsVoiceLine = false;
+        } else if (!this.isHotelsVoiceLineSaid && (this.storedHotelData != undefined && this.storedHotelData.length > 0)) {
+          this.isHotelsVoiceLineSaid = true;
+          this.sayVoiceMessageHandler(this.messageEnglish, `[ГОРОД]|${this.destinationCity};[ОТЕЛЬ]|${this.storedHotelData[0].Name};[ОТЕЛЬ]|${this.storedHotelData[0].OriginName}`);
         }
       } else if (item.startsWith("main")) {
         this.router.navigateByUrl('/');
@@ -211,16 +230,25 @@ export class SignalRService {
   }
 
   public fetchDataListener = () => {
-    this.hubConnection.on("FetchData", (rootObj, type) => {
-      this.storedFlightData = null;
-      this.storedHotelData = null;
+    this.hubConnection.on("FetchData", (rootObj, type, updateParams) => {
+      if (updateParams.update) {
+        this.resetVoiceLines(updateParams);
+        if (updateParams.updateFlights)
+          this.storedFlightData = null;
+        if (updateParams.updateHotels)
+          this.storedHotelData = null;
+      }
+
+      if (rootObj == null || rootObj.length == 0) {
+        if (type == 0) {
+          this.isNegativeFlightsVoiceLine = true;
+        } else {
+          this.isNegativeHotelsVoiceLine = true;
+        }
+        return;
+      }
 
       if (type == 0) {
-        if (rootObj == null || rootObj.length == 0) {
-          this.sayVoiceMessageHandler("К сожалению, не удалось получить рейсы по заданному направлению. Повторите попытку позже.");
-          return;
-        }
-        this.isHotelsVoiceLineSaid = false;
         this.storedFlightData = rootObj.map(x => {
           return <FlightData>
             {
@@ -234,11 +262,7 @@ export class SignalRService {
               TicketSellerUri: x.ticketSellerUri
             };
         });
-        this.fetchData(0);
-        this.sayVoiceMessageHandler("Вот, какие рейсы удалось получить");
       } else {
-        if (rootObj == null || rootObj.length == 0)
-          return;
         this.storedHotelData = rootObj.map(x => {
           return <HotelData>
             {
@@ -262,7 +286,6 @@ export class SignalRService {
             };
         });
         this.destinationCity = this.storedHotelData[0].City;
-        this.fetchData(1);
       }
     });
   }
@@ -299,6 +322,16 @@ export class SignalRService {
       case 3:
         toastr.error(notification.message);
         break;
+    }
+  }
+
+  private resetVoiceLines(updateParams: any) {
+    if (updateParams.updateFlights) {
+      this.isFlightsVoiceLineSaid = false;
+      this.isNegativeFlightsVoiceLine = false;
+    } else if (updateParams.updateHotels) {
+      this.isHotelsVoiceLineSaid = false;
+      this.isNegativeHotelsVoiceLine = false;
     }
   }
 

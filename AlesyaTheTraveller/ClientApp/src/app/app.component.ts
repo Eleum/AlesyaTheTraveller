@@ -14,5 +14,9 @@ export class AppComponent {
     this.signalr.sendMessage(message);
   }
 
+  deb() {
+    debugger;
+  }
+
   title = 'app';
 }

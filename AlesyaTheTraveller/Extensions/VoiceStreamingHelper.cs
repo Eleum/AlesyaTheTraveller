@@ -62,6 +62,19 @@ namespace AlesyaTheTraveller.Extensions
 
         public async Task<object> Recognize(CancellationToken token, string message = "")
         {
+            var alternative = message;
+            var englishAlternative = await TranslateMessageAsync(alternative);
+            await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"{alternative}|{englishAlternative}");
+
+            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
+
+            var intent = await proc.GetMessageIntentAsync(englishAlternative);
+            var intentParams = await proc.ParseIntent(intent);
+
+            await ProcessIntentParams(intentParams);
+
+            return null;
+
             var spec = new RecognitionSpec
             {
                 LanguageCode = "ru-RU",
@@ -160,17 +173,17 @@ namespace AlesyaTheTraveller.Extensions
                         {
                             // or use foreach (var alternative in chunk.Alternatives)
 
-                            var alternative = chunk.Alternatives.First();
-                            var englishAlternative = await TranslateMessageAsync(alternative.Text);
-                            await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"RU - {alternative.Text}\nENG - {englishAlternative}");
+                            //var alternative = chunk.Alternatives.First();
+                            //var englishAlternative = await TranslateMessageAsync(alternative.Text);
+                            //await _context.Clients.All.SendAsync("BroadcastMessageRuEng", $"{alternative.Text}|{englishAlternative}");
 
-                            var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
+                            //var proc = new IntentProcessor(new LuisConfig(LUIS_APP_URL, LUIS_API_KEY, LUIS_APP_ID), _flightDataCache, _flightData);
 
-                            var intent = await proc.GetMessageIntentAsync(englishAlternative);
-                            var intentParams = await proc.ParseIntent(intent);
+                            //var intent = await proc.GetMessageIntentAsync(englishAlternative);
+                            //var intentParams = await proc.ParseIntent(intent);
 
-                            await ProcessIntentParams(intentParams);
-                            break;
+                            //await ProcessIntentParams(intentParams);
+                            //break;
                         }
                     }
                 }
@@ -303,7 +316,7 @@ namespace AlesyaTheTraveller.Extensions
             }
 
             await context.Clients.All.SendAsync("Notify", $"Данные {(flights == null ? "не " : "")}получены!", flights == null ? 2 : 0);
-            await _context.Clients.All.SendAsync("FetchData", flights, FetchType.Flight);
+            await _context.Clients.All.SendAsync("FetchData", flights, FetchType.Flight, new { update = true, updateFlights = true, updateHotels = false });
         }
 
         /// <summary>
@@ -315,7 +328,7 @@ namespace AlesyaTheTraveller.Extensions
         /// <returns></returns>
         private async Task RunHotelSearch(string destination, string outboundDate, IHubContext<VoiceStreamingHub> context)
         {
-            await context.Clients.All.SendAsync("Notify", $"Начался поиск отелей", 1);
+            //await context.Clients.All.SendAsync("Notify", $"Начался поиск отелей", 1);
 
             var locations = await _flightData.GetLocations(destination);
 
@@ -354,7 +367,7 @@ namespace AlesyaTheTraveller.Extensions
             }
 
             await context.Clients.All.SendAsync("Notify", $"Данные {(hotelData == null ? "не " : "")}получены!", hotelData == null ? 2 : 0);
-            await _context.Clients.All.SendAsync("FetchData", hotelData, FetchType.Hotel);
+            await _context.Clients.All.SendAsync("FetchData", hotelData, FetchType.Hotel, new { update = true, updateFlights = false, updateHotels = true });
         }
     }
 }

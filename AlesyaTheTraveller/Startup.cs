@@ -24,13 +24,10 @@ namespace AlesyaTheTraveller
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddHostedService<ConsumeScopedServiceHostedService>();
-            //services.AddScoped<IScopedProcessingService, ScopedProcessingService>();
             services.AddScoped<IFlightDataService, FlightDataService>();
             services.AddSingleton<IFlightDataCacheService, FlightDataCacheService>();
             services.AddSingleton(Configuration);
 
-            services.AddDbContext<UtterancesContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddSignalR();
             services.AddCors(options =>
             {
@@ -38,6 +35,7 @@ namespace AlesyaTheTraveller
                     builder => builder.WithOrigins("https://localhost:44389/"));
             });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddDbContext<CorvegaContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
