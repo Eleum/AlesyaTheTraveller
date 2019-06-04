@@ -3,6 +3,7 @@ import { SignalRService } from '../services/signal-r.service';
 import { Observable, Subscription } from 'rxjs';
 import { FlightData } from './flight-data.model';
 import { ToastrService } from 'ngx-toastr';
+import { PaginatorService } from '../services/paginator.service';
 
 @Component({
   selector: 'app-flight-data',
@@ -14,9 +15,12 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
   private flightData: Observable<FlightData[]>;
   private subscription: Subscription;
   private notifySubscription: Subscription;
-  private fd: FlightData[];
 
-  constructor(private signalr: SignalRService, private toastr: ToastrService) { }
+  private fd: FlightData[];
+  private paginator: any = {};
+  private pageItems: any[];
+
+  constructor(private signalr: SignalRService, private toastr: ToastrService, private paginatorService: PaginatorService) { }
 
   ngOnInit() {
     this.toastr.toastrConfig = this.signalr.getToastrConfig();
@@ -25,30 +29,18 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
       data => {
         if (data != undefined && data != null) {
           this.flightText = "Вот какие есть рейсы по выбранному Вами направлению";
+          this.setPage(1);
         }
         console.log(data);
       },
       (err) => {
-        debugger;
+        console.error(err);
       }
     );
 
     this.notifySubscription = this.signalr.notifyTriggered.subscribe(notification => {
       this.signalr.notify(this.toastr, notification);
     });
-
-    var test =
-    {
-      ImageUri: 'https://s1.apideeplink.com/images/airlines/B2.png',
-      Departure: new Date(2019, 5, 1),
-      Arrival: new Date(2019, 5, 5),
-      Origin: 'МИНСК ИНТЕРНЭШНЛ 2',
-      Destination: 'ФРАНКФУРТ-НА-МАЙНЕ',
-      Cost: 1545.94,
-      Stops: 1,
-      TicketSellerUri: ''
-    };
-    this.fd = [test];
   }
 
   ngAfterViewInit() {
@@ -94,6 +86,8 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       };
     }, 1000);
+    console.log("flight text - " + this.flightText);
+    console.log(this.fd);
   }
 
   ngOnDestroy() {
@@ -117,5 +111,13 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
       cardbodyElem.classList.remove('row');
       innerDivElem.classList.remove('col-sm-12');
     }
+  }
+
+  setPage(page: number) {
+    // get paginator object
+    this.paginator = this.paginatorService.getPaginator(this.fd.length, page);
+
+    // get items for specified page
+    this.pageItems = this.fd.slice(this.paginator.startIndex, this.paginator.endIndex + 1);
   }
 }
