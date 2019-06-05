@@ -65,7 +65,7 @@ namespace AlesyaTheTraveller.Services
             _client.DefaultRequestHeaders.Add("X-RapidAPI-Key", _config["RapidApi:Key"]);
 
             var uri = _config["RapidApi:FlightUrl"] + _config["RapidApi:FlightSearch"] + "uk2/" +
-                _config["RapidApi:Version"] + sessionId + "?pageIndex=1";// &pageSize=2";
+                _config["RapidApi:Version"] + sessionId; //"?pageIndex=1"; &pageSize=2";
             var response = await _client.GetAsync(uri);
 
             if(!response.IsSuccessStatusCode)

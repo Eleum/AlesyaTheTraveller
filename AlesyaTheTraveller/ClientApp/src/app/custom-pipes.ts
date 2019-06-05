@@ -10,3 +10,20 @@ export class NumberToArrayPipe implements PipeTransform {
     return res;
   }
 }
+
+@Pipe({ name: 'description' })
+export class NumberToDescriptionPipe implements PipeTransform {
+  transform(value, args: string[]): any {
+    let ending = "";
+    if (value % 10 === 1) {
+      ending = "ка";
+    } else if (value % 10 === 2 || value % 10 === 3) {
+      ending = "ки";
+    } else if (value >= 11 && value <= 19) {
+      ending = "ок";
+    } else {
+      ending = "ок";
+    }
+    return `${value == 0 ? "нет" : value} пересад${ending}`;
+  }
+}

@@ -29,6 +29,7 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
       data => {
         if (data != undefined && data != null) {
           this.flightText = "Вот какие есть рейсы по выбранному Вами направлению";
+          this.fd = data;
           this.setPage(1);
         }
         console.log(data);
@@ -119,5 +120,9 @@ export class FlightDataComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // get items for specified page
     this.pageItems = this.fd.slice(this.paginator.startIndex, this.paginator.endIndex + 1);
+  }
+
+  getPaginator() {
+    console.log(this.paginator);
   }
 }

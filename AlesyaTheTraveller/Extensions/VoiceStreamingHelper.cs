@@ -307,6 +307,13 @@ namespace AlesyaTheTraveller.Extensions
                     flights = await _flightData.PollSessionResults(sessionId)
                         .ContinueWith((x) => _flightData.FormFlightData(x.Result),
                         TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+
+                    if(flights != null && flights.Count == 0)
+                    {
+                        tries--;
+                        continue;
+                    }
+
                     break;
                 }
             }

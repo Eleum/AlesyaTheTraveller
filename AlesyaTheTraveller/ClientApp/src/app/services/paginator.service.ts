@@ -7,7 +7,7 @@ export class PaginatorService {
 
   constructor() { }
 
-  getPaginator(totalItems: number, current: number = 1, pageSize: number = 10) {
+  getPaginator(totalItems: number, current: number = 1, pageSize: number = 6) {
     let totalPages = Math.ceil(totalItems / pageSize);
 
     if (current < 1) {
