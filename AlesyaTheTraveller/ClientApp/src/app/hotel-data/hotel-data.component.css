@@ -1,5 +1,5 @@
-.card {
-  width: 55rem;
+.page-link:not(:disabled):not(.disabled) {
+  cursor: pointer;
 }
 
 .inline {
@@ -10,19 +10,14 @@
   height: 100%;
 }
 
-.hotel-data-img {
-  width: 10rem;
-  float: left;
-}
-
 .hotel-data-img img {
   height: 100%;
   width: 100%;
 }
 
-.hotel-data-info {
+/*.hotel-data-info {
   width: 65%;
-}
+}*/
 
 .score-badge {
   background: #003580;
